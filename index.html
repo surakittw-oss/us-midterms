@@ -24,27 +24,18 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap">
 <style>
 /* Layout: navy results band with three seat boards → intro → office tabs, full-width map with result strip → results by state (collapsed) */
+/* Light only, on purpose: the page sits inside thestandard.co articles, which are always light.
+   Greys are neutral (no blue cast) so the page reads off-white rather than lilac. */
 :root{
-  --bg:#f5f6f9; --surface:#ffffff; --ink:#0f1a33; --muted:#5b6578; --line:#dde1ea;
+  color-scheme:light;
+  --bg:#f4f4f2; --surface:#ffffff; --ink:#111827; --muted:#5f6368; --line:#e0e0dd;
   --band:#0b1d3f; --band-2:#13295a; --on-band:#ffffff; --band-muted:#aab6d1;
   --dem:#2456c7; --dem-soft:#a9bdf0; --rep:#cf2f35; --rep-soft:#f2aeb0;
-  --pending:#cdd2dc; --none:#e8ebf1; --live:#ff5a5f; --on-solid:#ffffff;
+  --pending:#d0d0cc; --none:#eaeae7; --live:#ff5a5f; --on-solid:#ffffff;
   --ind:#7b55c7; --ind-soft:#cdbdf0;
   --f-body:"Jost", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --f-head:"Playfair Display", Georgia, "Times New Roman", serif;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0b1120; --surface:#121a2c; --ink:#e7ebf4; --muted:#9aa5bb; --line:#243049;
-  --band:#081530; --band-2:#102454; --on-band:#ffffff; --band-muted:#9eabc8;
-  --dem:#5b85f0; --dem-soft:#2b4380; --rep:#ee5a5f; --rep-soft:#7c2f33;
-  --ind:#9b7be6; --ind-soft:#45306f;
-  --pending:#36405a; --none:#1a2338; --live:#ff6b70; --on-solid:#ffffff; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0b1120; --surface:#121a2c; --ink:#e7ebf4; --muted:#9aa5bb; --line:#243049;
-  --band:#081530; --band-2:#102454; --on-band:#ffffff; --band-muted:#9eabc8;
-  --dem:#5b85f0; --dem-soft:#2b4380; --rep:#ee5a5f; --rep-soft:#7c2f33;
-  --ind:#9b7be6; --ind-soft:#45306f;
-  --pending:#36405a; --none:#1a2338; --live:#ff6b70; --on-solid:#ffffff; color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55}
 [hidden]{display:none!important}
