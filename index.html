@@ -54,7 +54,6 @@ h1{font-family:var(--f-head);font-weight:500;font-size:clamp(28px,4.4vw,44px);li
 .simtag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--live);color:var(--on-solid);border-radius:3px;padding:2px 8px;margin-left:8px;vertical-align:middle}
 .boards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 @media (max-width:860px){.boards{gap:10px}.board{padding:12px}.bnums b{font-size:26px}}
-@media (max-width:600px){.boards{grid-template-columns:minmax(0,1fr)}}
 .board{background:var(--band-2);border-radius:8px;padding:14px 16px;display:grid;gap:8px;text-align:left;color:var(--on-band);border:2px solid transparent}
 .board[aria-pressed="true"]{border-color:var(--on-band)}
 .board h2{margin:0;font-size:14px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
@@ -71,8 +70,22 @@ h1{font-family:var(--f-head);font-weight:500;font-size:clamp(28px,4.4vw,44px);li
 .bmark small{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11px;color:var(--band-muted);margin-bottom:1px}
 .bfoot{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--band-muted);flex-wrap:wrap}
 .bfoot i{display:inline-block;width:10px;height:10px;margin-right:3px;vertical-align:-1px;background:repeating-linear-gradient(135deg,var(--band-muted) 0 2px,transparent 2px 4px)}
+/* Phones: three compact boards side by side so the map is reachable without long scrolling */
+@media (max-width:600px){
+  .band .inner{padding-block:14px 16px;gap:12px}
+  .boards{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .board{padding:8px 8px 9px;gap:4px;border-radius:6px}
+  .board h2{font-size:11px;letter-spacing:.04em}
+  .bnums b{font-size:24px}
+  .bbar{margin-top:4px;height:8px}
+  .bmark small{display:none}
+  .board .bfoot:nth-child(4){display:none}                 /* party names: the colours carry it */
+  .board .bfoot:nth-child(5){font-size:10.5px;justify-content:flex-start}
+  .board .bfoot:nth-child(5) span:first-child{display:none} /* "not up" key */
+}
 /* page */
 .page{padding-block:24px 48px;display:grid;gap:24px}
+.page>*{min-width:0}   /* let wide tables scroll inside their box instead of widening the page */
 .intro{max-width:68ch;margin:0;font-size:17px}
 .status{font-size:14px;color:var(--muted);margin:6px 0 0}
 section h2{font-family:var(--f-head);font-size:24px;font-weight:500;margin:0}
@@ -120,6 +133,12 @@ rect.st.sel{stroke:var(--ink);stroke-width:2.5}
 /* tables */
 .tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
 table{border-collapse:collapse;width:100%;font-size:15px;min-width:600px}
+@media (max-width:600px){
+  table{min-width:0;font-size:14px}
+  th,td{padding:8px 10px}
+  /* tile map is the phone default; bigger state codes, no sub-labels */
+  .ht{font-size:20px} .hs{display:none}
+}
 th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--line)}
 th{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--bg)}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
@@ -127,7 +146,7 @@ tbody tr{cursor:pointer}
 tbody tr:hover{background:var(--bg)}
 tbody tr.sel{background:var(--bg);box-shadow:inset 3px 0 0 var(--rep)}
 .dim{color:var(--muted)}
-details{display:grid;gap:10px}
+details{display:block}   /* not grid: Chrome's details content box would then grow to the table's width */
 details summary{cursor:pointer;font-family:var(--f-head);font-weight:500;font-size:20px;padding:6px 0}
 .listhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0}
 .listhead .embedbtn{color:var(--muted);margin-left:0}
@@ -446,7 +465,10 @@ function totals(ch){
   return {races, wD, wR, wI, lD:n('lead-D'), lR:n('lead-R'), D:C.hold.D+wD, R:C.hold.R+wR};
 }
 
-let chamber='senate', selected=null, timer=null, mapMode='geo';
+let chamber='senate', selected=null, timer=null;
+// Phones get the tile map: every state is the same size, so all are readable and easy to tap
+let mapMode=matchMedia('(max-width:600px)').matches?'tiles':'geo';
+document.querySelectorAll('.toggle button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===mapMode));
 const $=id=>document.getElementById(id);
 const onKey=fn=>(e,ab)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn(ab)}};
 
