@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Folded paper map with a location pin, on the page's navy; red pin = results colour -->
+  <rect width="32" height="32" rx="7" fill="#0b1d3f"/>
+  <path d="M5 9.5 11.5 7v16.5L5 26z" fill="#ffffff"/>
+  <path d="M11.5 7l9 2.5V26l-9-2.5z" fill="#c9d3e8"/>
+  <path d="M20.5 9.5 27 7v16.5L20.5 26z" fill="#ffffff"/>
+  <path d="M16 8.6a4.4 4.4 0 0 0-4.4 4.4c0 3.3 4.4 8 4.4 8s4.4-4.7 4.4-8A4.4 4.4 0 0 0 16 8.6z" fill="#cf2f35" stroke="#0b1d3f" stroke-width="1"/>
+  <circle cx="16" cy="13" r="1.7" fill="#ffffff"/>
+</svg>
