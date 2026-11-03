@@ -413,7 +413,8 @@ function parseCSV(text){
 }
 // Read one tab; an unknown tab name makes Google return the first tab, so check for a required column.
 async function readTab(name, mustHave){
-  const res=await fetch(sheetURL(name));
+  // no-store only skips the browser's own copy (which otherwise went stale); Vercel's CDN still answers it as a cache HIT
+  const res=await fetch(sheetURL(name),{cache:'no-store'});
   if(!res.ok) throw new Error(`${name}: HTTP ${res.status}`);
   const rows=parseCSV(await res.text());
   return rows.length && mustHave in rows[0] ? rows : [];
