@@ -70,7 +70,12 @@ h1{font-family:var(--f-head);font-weight:500;font-size:clamp(28px,4.4vw,44px);li
 .board[aria-pressed="true"]{border-color:var(--on-band)}
 .board h2{margin:0;font-size:14px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
 .bnums{display:flex;justify-content:space-between;align-items:flex-end}
-.bnums b{font-family:var(--f-head);font-size:36px;font-weight:500;line-height:1;font-variant-numeric:lining-nums tabular-nums}
+.bnums b{font-family:var(--f-head);font-size:36px;font-weight:500;line-height:1;font-variant-numeric:lining-nums tabular-nums;display:inline-flex;align-items:center;gap:.18em}
+.picon{width:1em;height:1em;flex:none}
+.bnums .picon{width:.72em;height:.72em}
+.tp{display:inline-flex;align-items:center;gap:6px}
+.tp .picon{width:18px;height:18px}
+.tp.D .picon{color:var(--dem)} .tp.R .picon{color:var(--rep)}
 .bnums .d{color:#8fb0ff} .bnums .r{color:#ff9a9d}
 .bbar{position:relative;height:12px;margin-top:20px;display:flex;background:rgba(255,255,255,.14);border-radius:2px}
 .bbar span{height:100%;transition:width .5s}
@@ -91,6 +96,7 @@ h1{font-family:var(--f-head);font-weight:500;font-size:clamp(28px,4.4vw,44px);li
   .bnums b{font-size:24px}
   .bbar{margin-top:4px;height:8px}
   .bmark small{display:none}
+  .bnums .picon{display:none}                                /* no room beside the numbers; icons stay in the map tally */
   .board .bfoot:nth-child(4){display:none}                 /* party names: the colours carry it */
   .board .bfoot:nth-child(5){font-size:10.5px;justify-content:flex-start}
   .board .bfoot:nth-child(5) span:first-child{display:none} /* "not up" key */
@@ -192,6 +198,11 @@ dialog::backdrop{background:rgba(8,18,40,.55)}
 </style>
 </head>
 <body>
+<!-- Party icons, drawn for this page (not the parties' official logos): donkey = Democrats, elephant = Republicans -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-dem" viewBox="0 0 24 24"><path fill="currentColor" d="M3 8.6c0-1.6 1.3-2.8 2.9-2.6l1.3-4.4c.2-.6 1-.6 1.1 0l.2 3.6.9-3.2c.2-.6 1-.5 1.1.1l.1 5.6L12 10h7.2c1.8 0 3.1 1.1 3.6 2.6l.9-.5c.4-.2.8.2.6.6l-1.3 2.4V21c0 .6-.4 1-1 1h-1c-.6 0-1-.4-1-1v-3.6h-6V21c0 .6-.4 1-1 1h-1c-.6 0-1-.4-1-1v-6.2L7.6 11 5 11.2C3.9 11.3 3 10.4 3 9.3z"/></symbol>
+  <symbol id="i-rep" viewBox="0 0 24 24"><path fill="currentColor" d="M2 14.6V10c0-3.3 2.7-6 6-6h7.2c3.2 0 5.8 2.6 5.8 5.8v3.5c0 .9.3 1.7.9 2.3l.6.6c.4.4.1 1.1-.5 1.1h-1c-1.4 0-2.5-1.1-2.5-2.5V13h-.5v8c0 .6-.4 1-1 1h-1.3c-.6 0-1-.4-1-1v-3.4H9.3V21c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1v-4.6l-2.4.9c-.7.3-1.6-.2-1.6-1z"/></symbol>
+</svg>
 
 <header class="band gut" data-part="boards">
   <div class="inner">
@@ -469,6 +480,7 @@ function stateStatus(ch, ab){
 const FILL={'called-D':'var(--dem)','lead-D':'var(--dem-soft)','called-R':'var(--rep)','lead-R':'var(--rep-soft)','called-I':'var(--ind)','lead-I':'var(--ind-soft)','pending':'var(--pending)','none':'var(--none)'};
 const STATUS_TEXT={'called-D':'Dem win','called-R':'Rep win','called-I':'Ind win','lead-D':'Dem ahead','lead-R':'Rep ahead','lead-I':'Ind ahead','pending':'Awaiting results','none':'No election'};
 const SHORT={D:'Dem',R:'Rep',I:'Ind'};
+const picon=p=>`<svg class="picon" aria-hidden="true"><use href="#i-${p==='D'?'dem':'rep'}"/></svg>`;
 const racesOf=ch=>ch==='house'?Object.values(data.house).flat():Object.values(data[ch]);
 const onSolid=st=>st.startsWith('called')?'var(--on-solid)':'var(--ink)';
 function totals(ch){
@@ -491,7 +503,7 @@ function renderBoards(){
     const noun=ch==='governor'?'races':'seats';
     b.setAttribute('aria-pressed',ch===chamber);
     b.innerHTML=`<h2>${ch==='governor'?'Governors':C.label}</h2>
-      <div class="bnums"><b class="d">${t.D}</b><b class="r">${t.R}</b></div>
+      <div class="bnums"><b class="d">${picon('D')}${t.D}</b><b class="r">${t.R}${picon('R')}</b></div>
       <div class="bbar">
         <span class="nd" style="width:${w(C.hold.D)}"></span><span class="wd" style="width:${w(t.wD)}"></span><span class="gap"></span>
         <span class="wr" style="width:${w(t.wR)}"></span><span class="nr" style="width:${w(C.hold.R)}"></span>
@@ -596,13 +608,14 @@ function renderMap(){
 /* ---------- Party tally + result strip ---------- */
 function renderTally(){
   const sw=(c,t)=>`<span><i style="background:${c}"></i>${t}</span>`;
+  const party=(p,t)=>`<span class="tp ${p}">${picon(p)}${t}</span>`;
   if(chamber==='house'){
     const t=totals('house');
-    $('tally').innerHTML=sw('var(--dem)',`Democrats ${t.wD} seats`)+sw('var(--rep)',`Republicans ${t.wR} seats`)+`<span class="dim">${t.races.length-t.wD-t.wR} not called</span>`;
+    $('tally').innerHTML=party('D',`Democrats ${t.wD} seats`)+party('R',`Republicans ${t.wR} seats`)+`<span class="dim">${t.races.length-t.wD-t.wR} not called</span>`;
     return;
   }
   const t=totals(chamber), noun=chamber==='senate'?'seats':'states';
-  $('tally').innerHTML=`<span class="dim">Won this year:</span>`+sw('var(--dem)',`Democrats ${t.wD} ${noun}`)+sw('var(--rep)',`Republicans ${t.wR} ${noun}`)
+  $('tally').innerHTML=`<span class="dim">Won this year:</span>`+party('D',`Democrats ${t.wD} ${noun}`)+party('R',`Republicans ${t.wR} ${noun}`)
     +(t.wI?sw('var(--ind)',`Independents ${t.wI}`):'')+`<span class="dim">${t.races.length-t.wD-t.wR-t.wI} not called</span>`;
 }
 let hover=null;
