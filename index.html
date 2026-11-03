@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>US Midterm Elections 2026: Live Results | THE STANDARD</title>
 <meta name="description" content="Live 2026 US midterm results: who controls the Senate and the House, plus all 36 governor races, state by state on an interactive map. From THE STANDARD.">
-<link rel="canonical" href="https://surakittw-oss.github.io/us-midterms/">
+<link rel="canonical" href="https://us-midterms-ruddy.vercel.app/">
 <!-- Link previews (Facebook, LINE, X, Slack) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="THE STANDARD">
 <meta property="og:title" content="US Midterm Elections 2026: Live Results">
 <meta property="og:description" content="Who controls the Senate and the House? Follow every Senate, House and governor race state by state on an interactive map, updated live.">
-<meta property="og:url" content="https://surakittw-oss.github.io/us-midterms/">
+<meta property="og:url" content="https://us-midterms-ruddy.vercel.app/">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="US Midterm Elections 2026: Live Results">
@@ -357,10 +357,11 @@ const CHAMBERS = {
 const PARTY = {D:'Democrats', R:'Republicans'};
 
 /* ---------- Results data ----------
-   Live results come from the newsroom's Google Sheet (tabs "results" and "house"), re-read every 30 s.
+   Live results come from the newsroom's Google Sheet (tabs "results" and "house"), re-read every 30 s
+   through the Vercel cache in api/sheet.js, so reader traffic never reaches Google directly.
    race = {reporting (0–100), d, r, o (vote share or votes), called: 'D'|'R'|'I'|null, held, names, calledAt}
    "Preview with simulated results" swaps in random numbers for demos only. */
-const SHEET_ID='15Bq_0XLvVhgR3MhvmjbQDmLrvoXAyzKOcpE6beV-SaA';
+const SITE_URL='https://us-midterms-ruddy.vercel.app/';
 const REFRESH_MS=30000;
 let rnd=Math.random, data, simulated=false;
 let sheet={results:[],house:[]}, lastLoad=null, loadError=false;
@@ -394,7 +395,8 @@ const allRaces=()=>[...Object.values(data.senate),...Object.values(data.governor
 function tick(){ allRaces().forEach(r=>{ if(rnd()<0.35) stepRace(r, rnd()*9+1) }); render(); }
 
 /* ---------- Google Sheet feed ---------- */
-const sheetURL=name=>`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}&t=${Date.now()}`;
+// Same URL for every reader (no cache-busting), so Vercel's CDN can answer almost all requests
+const sheetURL=name=>`${SITE_URL}api/sheet?tab=${encodeURIComponent(name)}`;
 function parseCSV(text){
   const rows=[]; let row=[], cell='', q=false;
   for(let i=0;i<text.length;i++){
@@ -411,7 +413,7 @@ function parseCSV(text){
 }
 // Read one tab; an unknown tab name makes Google return the first tab, so check for a required column.
 async function readTab(name, mustHave){
-  const res=await fetch(sheetURL(name),{cache:'no-store'});
+  const res=await fetch(sheetURL(name));
   if(!res.ok) throw new Error(`${name}: HTTP ${res.status}`);
   const rows=parseCSV(await res.text());
   return rows.length && mustHave in rows[0] ? rows : [];
@@ -693,7 +695,7 @@ setChamber(CHAMBERS[fromHash]?fromHash:'senate');
    ?embed=1 hides the demo controls and embed buttons so readers never see simulated numbers.
    &part=boards|map|table shows one section only; &tabs=0 hides the office tabs.
    Inside an iframe the page posts its height so the host page can size the frame (see embed.html). */
-const PUBLIC_URL='https://surakittw-oss.github.io/us-midterms/';
+const PUBLIC_URL=SITE_URL;
 const PARTS={all:'Full results page',boards:'Seat boards',map:'Results map',table:'Results table'};
 const params=new URLSearchParams(location.search);
 if(params.has('embed')){
