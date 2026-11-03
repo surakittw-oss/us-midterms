@@ -6,15 +6,9 @@
 <title>US Midterms 2026 Results</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap">
-<style>
-/* THE STANDARD corporate face (Galyon). Loads from fonts/ in this repo if the licensed files are added there,
-   otherwise from thestandard.co (works once that server allows this domain via CORS). Outfit is the free stand-in. */
-@font-face{font-family:"TS Galyon";font-weight:100 599;font-display:swap;
-  src:url("fonts/Galyon-Regular.woff") format("woff"),url("https://thestandard.co/wp-content/themes/thestandard.v3/economicforum2026/assets/fonts/Galyon-Regular.woff") format("woff")}
-@font-face{font-family:"TS Galyon";font-weight:600 900;font-display:swap;
-  src:url("fonts/Galyon-Bold.woff") format("woff"),url("https://thestandard.co/wp-content/themes/thestandard.v3/economicforum2026/assets/fonts/Galyon-Bold.woff") format("woff")}
-</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Same pairing as THE STANDARD GLOBAL: Playfair Display for headlines and figures, Jost for everything else -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap">
 <style>
 /* Layout: navy results band with three seat boards → intro → office tabs, full-width map with result strip → results by state (collapsed) */
 :root{
@@ -23,7 +17,8 @@
   --dem:#2456c7; --dem-soft:#a9bdf0; --rep:#cf2f35; --rep-soft:#f2aeb0;
   --pending:#cdd2dc; --none:#e8ebf1; --live:#ff5a5f; --on-solid:#ffffff;
   --ind:#7b55c7; --ind-soft:#cdbdf0;
-  --f-body:"TS Galyon", "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-body:"Jost", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --f-head:"Playfair Display", Georgia, "Times New Roman", serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0b1120; --surface:#121a2c; --ink:#e7ebf4; --muted:#9aa5bb; --line:#243049;
@@ -54,16 +49,16 @@ button{font:inherit;cursor:pointer}
 .running .dot{animation:pulse 1.2s infinite}
 @keyframes pulse{50%{opacity:.25}}
 @media (prefers-reduced-motion: reduce){.running .dot{animation:none}}
-h1{font-weight:800;font-size:clamp(26px,4.2vw,40px);line-height:1.15;margin:4px 0 0;letter-spacing:-.01em;text-wrap:balance}
+h1{font-family:var(--f-head);font-weight:500;font-size:clamp(28px,4.4vw,44px);line-height:1.15;margin:4px 0 0;text-wrap:balance}
 .simtag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--live);color:var(--on-solid);border-radius:3px;padding:2px 8px;margin-left:8px;vertical-align:middle}
 .boards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 @media (max-width:860px){.boards{gap:10px}.board{padding:12px}.bnums b{font-size:26px}}
 @media (max-width:600px){.boards{grid-template-columns:minmax(0,1fr)}}
 .board{background:var(--band-2);border-radius:8px;padding:14px 16px;display:grid;gap:8px;text-align:left;color:var(--on-band);border:2px solid transparent}
 .board[aria-pressed="true"]{border-color:var(--on-band)}
-.board h2{margin:0;font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.board h2{margin:0;font-size:14px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
 .bnums{display:flex;justify-content:space-between;align-items:flex-end}
-.bnums b{font-size:32px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.bnums b{font-family:var(--f-head);font-size:36px;font-weight:500;line-height:1;font-variant-numeric:lining-nums tabular-nums}
 .bnums .d{color:#8fb0ff} .bnums .r{color:#ff9a9d}
 .bbar{position:relative;height:12px;margin-top:20px;display:flex;background:rgba(255,255,255,.14);border-radius:2px}
 .bbar span{height:100%;transition:width .5s}
@@ -79,13 +74,13 @@ h1{font-weight:800;font-size:clamp(26px,4.2vw,40px);line-height:1.15;margin:4px 
 .page{padding-block:24px 48px;display:grid;gap:24px}
 .intro{max-width:68ch;margin:0;font-size:17px}
 .status{font-size:14px;color:var(--muted);margin:6px 0 0}
-section h2{font-size:22px;font-weight:800;margin:0;letter-spacing:-.01em}
+section h2{font-family:var(--f-head);font-size:24px;font-weight:500;margin:0}
 .tabs{display:flex;gap:4px;box-shadow:inset 0 -2px var(--line);overflow-x:auto;overflow-y:hidden}
-.tab{background:none;border:0;padding:10px 16px;font-weight:700;color:var(--muted);white-space:nowrap}
+.tab{background:none;border:0;padding:10px 16px;font-weight:500;font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 .tab[aria-selected="true"]{color:var(--ink);box-shadow:inset 0 -3px var(--rep)}
 .box{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:grid;gap:12px;min-width:0;align-content:start}
 .maphead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.maphead h3{margin:0;font-size:16px}
+.maphead h3{margin:0;font-family:var(--f-head);font-size:22px;font-weight:500}
 .toggle{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
 .toggle button{border:0;background:var(--surface);color:var(--muted);font-weight:600;font-size:13px;padding:5px 14px}
 .toggle button+button{border-left:1px solid var(--line)}
@@ -132,14 +127,15 @@ tbody tr:hover{background:var(--bg)}
 tbody tr.sel{background:var(--bg);box-shadow:inset 3px 0 0 var(--rep)}
 .dim{color:var(--muted)}
 details{display:grid;gap:10px}
-details summary{cursor:pointer;font-weight:700;font-size:16px;padding:6px 0}
+details summary{cursor:pointer;font-family:var(--f-head);font-weight:500;font-size:20px;padding:6px 0}
 .listhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0}
 .listhead .embedbtn{color:var(--muted);margin-left:0}
 input[type=search]{font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);width:min(280px,100%)}
 footer{font-size:13px;color:var(--muted);display:grid;gap:8px;border-top:1px solid var(--line);padding-top:16px}
 footer .ctl{display:flex;gap:8px;flex-wrap:wrap}
 .credit{max-width:1120px;margin:0 auto;padding-block:14px 20px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:6px 16px;flex-wrap:wrap}
-.credit b{color:var(--ink);font-weight:700;letter-spacing:.08em}
+.credit a{color:var(--ink);font-weight:500;text-decoration:none}
+.credit a:hover{text-decoration:underline}
 .embedded .credit{padding-block:8px 12px}
 .btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:5px 12px;font-size:13px;font-weight:600}
 .btn:hover{border-color:var(--muted)}
@@ -153,7 +149,7 @@ footer .ctl{display:flex;gap:8px;flex-wrap:wrap}
 dialog{border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:min(560px,calc(100vw - 32px));padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
 dialog::backdrop{background:rgba(8,18,40,.55)}
 .dlg{display:grid;gap:12px}
-.dlg h2{font-size:20px}
+.dlg h2{font-family:var(--f-head);font-weight:500;font-size:22px}
 .dlgrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .dlg label{display:grid;gap:4px;font-size:13px;font-weight:600;color:var(--muted)}
 .dlg label.chk{display:flex;align-items:center;gap:8px;font-weight:500;color:var(--ink)}
@@ -220,7 +216,7 @@ dialog::backdrop{background:rgba(8,18,40,.55)}
   </footer>
 </div></main>
 
-<div class="gut"><p class="credit"><span>© 2026 <b>THE STANDARD</b>. All rights reserved.</span><span>Results compiled by THE STANDARD newsroom</span></p></div>
+<div class="gut"><p class="credit"><span>© 2026 <a href="https://thestandard.co" target="_blank" rel="noopener">thestandard.co</a>. All rights reserved.</span><span>Results compiled by THE STANDARD newsroom</span></p></div>
 
 <dialog id="embedDlg" aria-labelledby="embedTitle">
   <form method="dialog" class="dlg">
