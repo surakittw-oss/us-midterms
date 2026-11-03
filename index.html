@@ -452,7 +452,8 @@ tileG.append('text').attr('class','ht').attr('x',s=>hexPos(s)[0]).attr('y',s=>he
 tileG.append('text').attr('class','hs').attr('x',s=>hexPos(s)[0]).attr('y',s=>hexPos(s)[1]+12);
 
 function renderMap(){
-  $('geo').hidden=mapMode!=='geo'; $('tiles').hidden=mapMode!=='tiles';
+  // SVG elements have no .hidden property, so set the attribute itself
+  $('geo').toggleAttribute('hidden',mapMode!=='geo'); $('tiles').toggleAttribute('hidden',mapMode!=='tiles');
   $('mapTitle').textContent=`${CHAMBERS[chamber].label} results by state`;
   if(mapMode==='geo'){
     geo.selectAll('.st').each(function(){
