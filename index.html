@@ -83,14 +83,19 @@ section h2{font-size:22px;font-weight:800;margin:0;letter-spacing:-.01em}
 .toggle button+button{border-left:1px solid var(--line)}
 .toggle button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
 svg.map{width:100%;height:auto;display:block}
+/* Map focus: no browser focus box; the outline follows the state's shape instead */
+svg.map [tabindex]:focus,svg.map [tabindex]:focus-visible{outline:none}
 .hex{stroke:var(--surface);stroke-width:2;cursor:pointer;transition:fill .4s}
-.hex:hover{stroke:var(--ink)}
+.hex.hov{stroke:var(--ink);stroke-width:2.5}
 .hex.sel{stroke:var(--ink);stroke-width:3.5}
+.hl{fill:none;pointer-events:none;stroke:var(--ink);stroke-linejoin:round}
+.hl.hov{stroke-width:2}
+.hl.sel{stroke-width:3}
 .ht{font-weight:700;font-size:13px;text-anchor:middle;pointer-events:none;font-family:var(--f-body)}
 .hs{font-size:9.5px;text-anchor:middle;pointer-events:none;font-family:var(--f-body);font-variant-numeric:tabular-nums}
 .st{stroke:var(--surface);stroke-width:1;cursor:pointer;transition:fill .4s}
-.st:hover{stroke:var(--ink);stroke-width:1.5}
-.st.sel{stroke:var(--ink);stroke-width:2.5}
+rect.st.hov{stroke:var(--ink);stroke-width:2}
+rect.st.sel{stroke:var(--ink);stroke-width:2.5}
 .mesh{fill:none;stroke:var(--surface);stroke-width:.6;pointer-events:none}
 .lbl{font-size:11px;font-weight:700;pointer-events:none;text-anchor:middle;dominant-baseline:central;font-family:var(--f-body)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted)}
@@ -473,15 +478,18 @@ const ADJ={FL:[14,10],LA:[-10,-2],MI:[12,22],KY:[6,4],HI:[14,6],CA:[-10,0],ID:[0
 geo.append('g').selectAll('path').data(features).join('path')
   .attr('class','st').attr('d',path).attr('tabindex',0).attr('data-ab',d=>BY_FIPS[d.id].ab)
   .on('click',(e,d)=>select(BY_FIPS[d.id].ab)).on('keydown',(e,d)=>onKey(select)(e,BY_FIPS[d.id].ab))
-  .on('mouseenter',(e,d)=>hoverOn(BY_FIPS[d.id].ab)).on('mouseleave',()=>hoverOn(null))
+  .on('mouseenter focus',(e,d)=>hoverOn(BY_FIPS[d.id].ab)).on('mouseleave blur',()=>hoverOn(null))
   .append('title');
 geo.append('path').attr('class','mesh').datum(topojson.mesh(TOPO,TOPO.objects.states,(a,b)=>a!==b)).attr('d',path);
+// Outlines drawn above every state so neighbours never cover them
+const FEAT=Object.fromEntries(features.map(f=>[BY_FIPS[f.id].ab,f]));
+const hlSel=geo.append('path').attr('class','hl sel'), hlHov=geo.append('path').attr('class','hl hov');
 const geoLabels=geo.append('g').selectAll('text').data(features.filter(d=>!SMALL.includes(BY_FIPS[d.id].ab))).join('text')
   .attr('class','lbl').attr('transform',d=>{const [x,y]=path.centroid(d),a=ADJ[BY_FIPS[d.id].ab]||[0,0];return `translate(${x+a[0]},${y+a[1]})`}).text(d=>BY_FIPS[d.id].ab);
 const geoBoxes=geo.append('g').selectAll('g').data(SMALL).join('g')
   .attr('transform',(ab,i)=>`translate(985,${150+i*30})`).style('cursor','pointer').attr('tabindex',0)
   .on('click',(e,ab)=>select(ab)).on('keydown',onKey(select))
-  .on('mouseenter',(e,ab)=>hoverOn(ab)).on('mouseleave',()=>hoverOn(null));
+  .on('mouseenter focus',(e,ab)=>hoverOn(ab)).on('mouseleave blur',()=>hoverOn(null));
 geoBoxes.append('rect').attr('class','st').attr('width',44).attr('height',24).attr('rx',3).attr('data-ab',ab=>ab);
 geoBoxes.append('text').attr('class','lbl').attr('x',22).attr('y',12).text(ab=>ab);
 
@@ -491,8 +499,15 @@ const hexPos=s=>[PADX+HW/2+s.col*HW+(s.row%2?HW/2:0), PADY+HS+s.row*1.5*HS];
 const hexPath=(cx,cy,r)=>d3.range(6).map(k=>{const a=Math.PI/180*(60*k-30);return `${k?'L':'M'}${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`}).join('')+'Z';
 const tileG=d3.select('#tiles').selectAll('g').data(STATES).join('g').attr('tabindex',0).style('cursor','pointer')
   .on('click',(e,s)=>select(s.ab)).on('keydown',(e,s)=>onKey(select)(e,s.ab))
-  .on('mouseenter',(e,s)=>hoverOn(s.ab)).on('mouseleave',()=>hoverOn(null));
-function hoverOn(ab){ hover=ab; renderInfo(); }
+  .on('mouseenter focus',(e,s)=>hoverOn(s.ab)).on('mouseleave blur',()=>hoverOn(null));
+function hoverOn(ab){ hover=ab; drawHighlight(); renderInfo(); }
+function drawHighlight(){
+  const d=ab=>ab&&FEAT[ab]?path(FEAT[ab]):null;
+  hlSel.attr('d',d(selected)); hlHov.attr('d',hover!==selected?d(hover):null);
+  geoBoxes.select('rect').classed('hov',ab=>ab===hover).classed('sel',ab=>ab===selected);
+  tileG.select('.hex').classed('hov',s=>s.ab===hover).classed('sel',s=>s.ab===selected);
+  tileG.filter(s=>s.ab===hover||s.ab===selected).raise();   // keep the outlined hexagon on top
+}
 tileG.append('path').attr('class','hex').attr('d',s=>hexPath(...hexPos(s),HS-1)).append('title');
 tileG.append('text').attr('class','ht').attr('x',s=>hexPos(s)[0]).attr('y',s=>hexPos(s)[1]-2).text(s=>s.ab);
 tileG.append('text').attr('class','hs').attr('x',s=>hexPos(s)[0]).attr('y',s=>hexPos(s)[1]+12);
@@ -520,6 +535,7 @@ function renderMap(){
       g.select('.hs').attr('fill',ink).text(sub);
     });
   }
+  drawHighlight();
   const sq=(c,t)=>`<span><i style="background:${c}"></i>${t}</span>`;
   const hasInd=chamber!=='house'&&Object.values(data[chamber]).some(r=>r.names?.I);
   $('legend').innerHTML=sq('var(--dem)','Dem win')+sq('var(--dem-soft)','Dem ahead')+sq('var(--rep)','Rep win')+sq('var(--rep-soft)','Rep ahead')
