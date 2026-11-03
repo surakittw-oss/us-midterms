@@ -6,7 +6,15 @@
 <title>US Midterms 2026 Results</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap">
+<style>
+/* THE STANDARD corporate face (Galyon). Loads from fonts/ in this repo if the licensed files are added there,
+   otherwise from thestandard.co (works once that server allows this domain via CORS). Outfit is the free stand-in. */
+@font-face{font-family:"TS Galyon";font-weight:100 599;font-display:swap;
+  src:url("fonts/Galyon-Regular.woff") format("woff"),url("https://thestandard.co/wp-content/themes/thestandard.v3/economicforum2026/assets/fonts/Galyon-Regular.woff") format("woff")}
+@font-face{font-family:"TS Galyon";font-weight:600 900;font-display:swap;
+  src:url("fonts/Galyon-Bold.woff") format("woff"),url("https://thestandard.co/wp-content/themes/thestandard.v3/economicforum2026/assets/fonts/Galyon-Bold.woff") format("woff")}
+</style>
 <style>
 /* Layout: navy results band with three seat boards → intro → office tabs, full-width map with result strip → results by state (collapsed) */
 :root{
@@ -15,7 +23,7 @@
   --dem:#2456c7; --dem-soft:#a9bdf0; --rep:#cf2f35; --rep-soft:#f2aeb0;
   --pending:#cdd2dc; --none:#e8ebf1; --live:#ff5a5f; --on-solid:#ffffff;
   --ind:#7b55c7; --ind-soft:#cdbdf0;
-  --f-body:"Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-body:"TS Galyon", "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0b1120; --surface:#121a2c; --ink:#e7ebf4; --muted:#9aa5bb; --line:#243049;
@@ -130,6 +138,9 @@ details summary{cursor:pointer;font-weight:700;font-size:16px;padding:6px 0}
 input[type=search]{font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);width:min(280px,100%)}
 footer{font-size:13px;color:var(--muted);display:grid;gap:8px;border-top:1px solid var(--line);padding-top:16px}
 footer .ctl{display:flex;gap:8px;flex-wrap:wrap}
+.credit{max-width:1120px;margin:0 auto;padding-block:14px 20px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:6px 16px;flex-wrap:wrap}
+.credit b{color:var(--ink);font-weight:700;letter-spacing:.08em}
+.embedded .credit{padding-block:8px 12px}
 .btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:5px 12px;font-size:13px;font-weight:600}
 .btn:hover{border-color:var(--muted)}
 .btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
@@ -208,6 +219,8 @@ dialog::backdrop{background:rgba(8,18,40,.55)}
     <div class="ctl" id="ctl"><button class="btn" id="sim" type="button">Preview with simulated results</button><button class="btn" id="play" type="button" hidden>▶ Run count</button><button class="btn" type="button" data-embed="all">&lt;/&gt; Embed whole page</button></div>
   </footer>
 </div></main>
+
+<div class="gut"><p class="credit"><span>© 2026 <b>THE STANDARD</b>. All rights reserved.</span><span>Results compiled by THE STANDARD newsroom</span></p></div>
 
 <dialog id="embedDlg" aria-labelledby="embedTitle">
   <form method="dialog" class="dlg">
