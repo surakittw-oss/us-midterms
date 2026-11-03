@@ -85,6 +85,7 @@ section h2{font-size:22px;font-weight:800;margin:0;letter-spacing:-.01em}
 svg.map{width:100%;height:auto;display:block}
 /* Map focus: no browser focus box; the outline follows the state's shape instead */
 svg.map [tabindex]:focus,svg.map [tabindex]:focus-visible{outline:none}
+svg.map .off{pointer-events:none}
 .hex{stroke:var(--surface);stroke-width:2;cursor:pointer;transition:fill .4s}
 .hex.hov{stroke:var(--ink);stroke-width:2.5}
 .hex.sel{stroke:var(--ink);stroke-width:3.5}
@@ -500,7 +501,8 @@ const hexPath=(cx,cy,r)=>d3.range(6).map(k=>{const a=Math.PI/180*(60*k-30);retur
 const tileG=d3.select('#tiles').selectAll('g').data(STATES).join('g').attr('tabindex',0).style('cursor','pointer')
   .on('click',(e,s)=>select(s.ab)).on('keydown',(e,s)=>onKey(select)(e,s.ab))
   .on('mouseenter focus',(e,s)=>hoverOn(s.ab)).on('mouseleave blur',()=>hoverOn(null));
-function hoverOn(ab){ hover=ab; drawHighlight(); renderInfo(); }
+const hasRace=ab=>stateStatus(chamber,ab)!=='none';
+function hoverOn(ab){ hover=ab&&hasRace(ab)?ab:null; drawHighlight(); renderInfo(); }
 function drawHighlight(){
   const d=ab=>ab&&FEAT[ab]?path(FEAT[ab]):null;
   hlSel.attr('d',d(selected)); hlHov.attr('d',hover!==selected?d(hover):null);
@@ -535,6 +537,10 @@ function renderMap(){
       g.select('.hs').attr('fill',ink).text(sub);
     });
   }
+  // States with no race for this office can't be hovered, clicked or tabbed to
+  geo.selectAll('path.st').classed('off',function(){return !hasRace(this.dataset.ab)}).attr('tabindex',function(){return hasRace(this.dataset.ab)?0:-1});
+  geoBoxes.classed('off',ab=>!hasRace(ab)).attr('tabindex',ab=>hasRace(ab)?0:-1);
+  tileG.classed('off',s=>!hasRace(s.ab)).attr('tabindex',s=>hasRace(s.ab)?0:-1);
   drawHighlight();
   const sq=(c,t)=>`<span><i style="background:${c}"></i>${t}</span>`;
   const hasInd=chamber!=='house'&&Object.values(data[chamber]).some(r=>r.names?.I);
@@ -601,7 +607,7 @@ function render(){
   const t=simulated?new Date():lastLoad;
   $('updated').textContent=t?t.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'–';
 }
-function select(ab){ selected=ab; render(); }
+function select(ab){ if(!hasRace(ab)) return; selected=ab; render(); }
 function setChamber(ch){
   chamber=ch; selected=null;
   try{history.replaceState(null,'','#'+ch)}catch(e){}
