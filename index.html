@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap">
 <style>
-/* Layout: navy results band with three seat boards → intro → office tabs, map + race card → key races table → all races (collapsed) */
+/* Layout: navy results band with three seat boards → intro → office tabs, full-width map with result strip → results by state (collapsed) */
 :root{
   --bg:#f5f6f9; --surface:#ffffff; --ink:#0f1a33; --muted:#5b6578; --line:#dde1ea;
   --band:#0b1d3f; --band-2:#13295a; --on-band:#ffffff; --band-muted:#aab6d1;
@@ -74,8 +74,6 @@ section h2{font-size:22px;font-weight:800;margin:0;letter-spacing:-.01em}
 .tabs{display:flex;gap:4px;box-shadow:inset 0 -2px var(--line);overflow-x:auto;overflow-y:hidden}
 .tab{background:none;border:0;padding:10px 16px;font-weight:700;color:var(--muted);white-space:nowrap}
 .tab[aria-selected="true"]{color:var(--ink);box-shadow:inset 0 -3px var(--rep)}
-.main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
-@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr)}}
 .box{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:grid;gap:12px;min-width:0;align-content:start}
 .maphead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .maphead h3{margin:0;font-size:16px}
@@ -96,30 +94,18 @@ svg.map{width:100%;height:auto;display:block}
 .lbl{font-size:11px;font-weight:700;pointer-events:none;text-anchor:middle;dominant-baseline:central;font-family:var(--f-body)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted)}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:5px;vertical-align:-2px}
-/* race card */
-.card h3{font-size:24px;margin:0;line-height:1.2;font-weight:800}
-.card .sub{color:var(--muted);font-size:13px;margin:2px 0 0}
-.ch{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+/* result strip under the map */
+.info{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;min-height:44px;padding:10px 12px;background:var(--bg);border-radius:6px;font-size:15px}
+.info .dim{font-size:14px}
+.tally{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;font-weight:600}
+.tally i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
 .badge{font-size:12px;font-weight:700;padding:2px 8px;border-radius:3px;white-space:nowrap;display:inline-block}
 .badge.called-D{background:var(--dem);color:var(--on-solid)} .badge.called-R{background:var(--rep);color:var(--on-solid)}
 .badge.lead-D{background:var(--dem-soft);color:var(--ink)} .badge.lead-R{background:var(--rep-soft);color:var(--ink)}
 .badge.called-I{background:var(--ind);color:var(--on-solid)} .badge.lead-I{background:var(--ind-soft);color:var(--ink)}
 .badge.pending,.badge.none{background:var(--pending);color:var(--ink)}
-.cands{display:grid;gap:12px}
-.cand{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline}
-.cand .nm{font-weight:600;font-size:15px}
-.cand .pct{font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
-.cand .bar{grid-column:1/3;height:10px;border-radius:2px;background:var(--none);overflow:hidden}
-.cand .bar b{display:block;height:100%;transition:width .5s}
-.cand .votes{grid-column:1/3;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-.cand.win .nm::after{content:" ✓"}
-.meta{font-size:13px;color:var(--muted);display:grid;gap:4px;border-top:1px solid var(--line);padding-top:12px}
-.waiting{font-size:14px;color:var(--muted);background:var(--bg);border-radius:6px;padding:12px;margin:0}
 .flip{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;border-radius:3px;padding:0 6px;margin-left:6px;color:var(--on-solid)}
 .flip.D{background:var(--dem)} .flip.R{background:var(--rep)} .flip.I{background:var(--ind)}
-.counts{display:flex;justify-content:space-between;font-size:13px;font-weight:600}
-.districts{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:3px}
-.districts span{font-size:11px;text-align:center;padding:4px 0;border-radius:2px;font-variant-numeric:tabular-nums}
 /* tables */
 .tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
 table{border-collapse:collapse;width:100%;font-size:15px;min-width:600px}
@@ -129,11 +115,6 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 tbody tr{cursor:pointer}
 tbody tr:hover{background:var(--bg)}
 tbody tr.sel{background:var(--bg);box-shadow:inset 3px 0 0 var(--rep)}
-.lead{display:inline-flex;align-items:center;gap:6px;font-weight:600}
-.lead i{width:10px;height:10px;border-radius:2px;display:inline-block}
-.prog{display:flex;align-items:center;gap:8px;justify-content:flex-end}
-.prog span{width:70px;height:6px;border-radius:3px;background:var(--none);overflow:hidden;display:inline-block}
-.prog span b{display:block;height:100%;background:var(--ink)}
 .dim{color:var(--muted)}
 details{display:grid;gap:10px}
 details summary{cursor:pointer;font-weight:700;font-size:16px;padding:6px 0}
@@ -173,29 +154,23 @@ footer .ctl{display:flex;gap:8px;flex-wrap:wrap}
       <button class="tab" role="tab" data-ch="house">House</button>
       <button class="tab" role="tab" data-ch="governor">Governor</button>
     </nav>
-    <div class="main">
-      <div class="box">
-        <div class="maphead"><h3 id="mapTitle">Senate results by state</h3>
-          <div class="toggle" role="group" aria-label="Map style">
-            <button type="button" data-mode="geo" aria-pressed="true">Map</button>
-            <button type="button" data-mode="tiles" aria-pressed="false">Tiles</button>
-          </div>
+    <div class="box">
+      <div class="maphead"><h3 id="mapTitle">Senate results by state</h3>
+        <div class="toggle" role="group" aria-label="Map style">
+          <button type="button" data-mode="geo" aria-pressed="true">Map</button>
+          <button type="button" data-mode="tiles" aria-pressed="false">Tiles</button>
         </div>
-        <svg class="map" id="geo" viewBox="0 0 1040 610" role="img" aria-label="Map of results by state"></svg>
-        <svg class="map" id="tiles" viewBox="0 0 742 432" role="img" aria-label="Tile map of results by state" hidden></svg>
-        <div class="legend" id="legend"></div>
       </div>
-      <aside class="box card" id="card"></aside>
+      <div class="tally" id="tally"></div>
+      <svg class="map" id="geo" viewBox="0 0 1040 610" role="img" aria-label="Map of results by state"></svg>
+      <svg class="map" id="tiles" viewBox="0 0 742 432" role="img" aria-label="Tile map of results by state" hidden></svg>
+      <div class="info" id="info" aria-live="polite"></div>
+      <div class="legend" id="legend"></div>
     </div>
   </section>
 
-  <section style="display:grid;gap:12px">
-    <h2 id="keyTitle">Key Senate races</h2>
-    <div class="tablebox"><table><thead id="kthead"></thead><tbody id="ktbody"></tbody></table></div>
-  </section>
-
   <details>
-    <summary id="allTitle">All Senate races</summary>
+    <summary id="allTitle">Results by state</summary>
     <div class="listhead"><input type="search" id="q" placeholder="Search state, e.g. Texas or TX" aria-label="Search state"></div>
     <div class="tablebox"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
   </details>
@@ -279,18 +254,12 @@ const closeUTC = h => Date.UTC(2026,10,3,5) + h*3600e3; // EST = UTC-5
 const etLabel = h => {const hh=Math.floor(h)%24, m=h%1?':30':''; return `${hh%12||12}${m} ${hh<12?'a.m.':'p.m.'} ET`};
 const thLabel = h => {const t=h+12, hh=Math.floor(t)%24, m=t%1?'30':'00'; return `${String(hh).padStart(2,'0')}:${m}`};
 
-const KEY = {
-  senate:['GA','MI','NC','ME','NH','OH','TX','IA','AK','MN'],
-  house:['CA','NY','PA','AZ','MI','VA','NJ','WI','CO','NC'],
-  governor:['AZ','GA','MI','NV','WI','PA','KS','NH','IA','MN'],
-};
 const CHAMBERS = {
   senate:  {label:'Senate', total:100, mark:51, markText:'51 for majority', hold:{D:34,R:31}, first:'GA'},
   house:   {label:'House', total:435, mark:218, markText:'218 for majority', hold:{D:0,R:0}, first:'PA'},
   governor:{label:'Governor', total:50, mark:null, hold:{D:6,R:8}, first:'AZ'},
 };
 const PARTY = {D:'Democrats', R:'Republicans'};
-const PARTY1 = {D:'Democratic', R:'Republican'};
 
 /* ---------- Results data ----------
    Live results come from the newsroom's Google Sheet (tabs "results" and "house"), re-read every 30 s.
@@ -408,8 +377,6 @@ const FILL={'called-D':'var(--dem)','lead-D':'var(--dem-soft)','called-R':'var(-
 const STATUS_TEXT={'called-D':'Dem win','called-R':'Rep win','called-I':'Ind win','lead-D':'Dem ahead','lead-R':'Rep ahead','lead-I':'Ind ahead','pending':'Awaiting results','none':'No election'};
 const SHORT={D:'Dem',R:'Rep',I:'Ind'};
 const racesOf=ch=>ch==='house'?Object.values(data.house).flat():Object.values(data[ch]);
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const pct=(a,t)=>t?(a/t*100).toFixed(1):'0.0';
 const onSolid=st=>st.startsWith('called')?'var(--on-solid)':'var(--ink)';
 function totals(ch){
   const C=CHAMBERS[ch], races=racesOf(ch), n=s=>races.filter(r=>raceStatus(r)===s).length;
@@ -460,13 +427,15 @@ const ADJ={FL:[14,10],LA:[-10,-2],MI:[12,22],KY:[6,4],HI:[14,6],CA:[-10,0],ID:[0
 geo.append('g').selectAll('path').data(features).join('path')
   .attr('class','st').attr('d',path).attr('tabindex',0).attr('data-ab',d=>BY_FIPS[d.id].ab)
   .on('click',(e,d)=>select(BY_FIPS[d.id].ab)).on('keydown',(e,d)=>onKey(select)(e,BY_FIPS[d.id].ab))
+  .on('mouseenter',(e,d)=>hoverOn(BY_FIPS[d.id].ab)).on('mouseleave',()=>hoverOn(null))
   .append('title');
 geo.append('path').attr('class','mesh').datum(topojson.mesh(TOPO,TOPO.objects.states,(a,b)=>a!==b)).attr('d',path);
 const geoLabels=geo.append('g').selectAll('text').data(features.filter(d=>!SMALL.includes(BY_FIPS[d.id].ab))).join('text')
   .attr('class','lbl').attr('transform',d=>{const [x,y]=path.centroid(d),a=ADJ[BY_FIPS[d.id].ab]||[0,0];return `translate(${x+a[0]},${y+a[1]})`}).text(d=>BY_FIPS[d.id].ab);
 const geoBoxes=geo.append('g').selectAll('g').data(SMALL).join('g')
   .attr('transform',(ab,i)=>`translate(985,${150+i*30})`).style('cursor','pointer').attr('tabindex',0)
-  .on('click',(e,ab)=>select(ab)).on('keydown',onKey(select));
+  .on('click',(e,ab)=>select(ab)).on('keydown',onKey(select))
+  .on('mouseenter',(e,ab)=>hoverOn(ab)).on('mouseleave',()=>hoverOn(null));
 geoBoxes.append('rect').attr('class','st').attr('width',44).attr('height',24).attr('rx',3).attr('data-ab',ab=>ab);
 geoBoxes.append('text').attr('class','lbl').attr('x',22).attr('y',12).text(ab=>ab);
 
@@ -475,7 +444,9 @@ const HW=58, HS=HW/Math.sqrt(3), PADX=8, PADY=6;
 const hexPos=s=>[PADX+HW/2+s.col*HW+(s.row%2?HW/2:0), PADY+HS+s.row*1.5*HS];
 const hexPath=(cx,cy,r)=>d3.range(6).map(k=>{const a=Math.PI/180*(60*k-30);return `${k?'L':'M'}${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`}).join('')+'Z';
 const tileG=d3.select('#tiles').selectAll('g').data(STATES).join('g').attr('tabindex',0).style('cursor','pointer')
-  .on('click',(e,s)=>select(s.ab)).on('keydown',(e,s)=>onKey(select)(e,s.ab));
+  .on('click',(e,s)=>select(s.ab)).on('keydown',(e,s)=>onKey(select)(e,s.ab))
+  .on('mouseenter',(e,s)=>hoverOn(s.ab)).on('mouseleave',()=>hoverOn(null));
+function hoverOn(ab){ hover=ab; renderInfo(); }
 tileG.append('path').attr('class','hex').attr('d',s=>hexPath(...hexPos(s),HS-1)).append('title');
 tileG.append('text').attr('class','ht').attr('x',s=>hexPos(s)[0]).attr('y',s=>hexPos(s)[1]-2).text(s=>s.ab);
 tileG.append('text').attr('class','hs').attr('x',s=>hexPos(s)[0]).attr('y',s=>hexPos(s)[1]+12);
@@ -509,89 +480,67 @@ function renderMap(){
     +(mapMode==='tiles'&&chamber==='house'?'<span>Numbers: seats won, Dem–Rep</span>':'');
 }
 
-/* ---------- Race card ---------- */
-const pollLine=ab=>CLOSE_AT[ab]!=null?`<span>Polls close ${thLabel(CLOSE_AT[ab])} Thailand time (${etLabel(CLOSE_AT[ab])})</span>`:'';
-function renderCard(){
-  const s=BY[selected], card=$('card');
-  if(!s){card.innerHTML='<p class="waiting">Select a state on the map or in a table.</p>';return}
-  const head=(sub,st)=>`<div class="ch"><div><h3>${s.en}</h3><p class="sub">${sub}</p></div><span class="badge ${st}">${STATUS_TEXT[st]}</span></div>`;
+/* ---------- Party tally + result strip ---------- */
+function renderTally(){
+  const sw=(c,t)=>`<span><i style="background:${c}"></i>${t}</span>`;
   if(chamber==='house'){
-    if(!data.house[s.ab]){card.innerHTML=head('House','none')+'<p class="waiting">DC elects a non-voting delegate only.</p>';return}
-    const ds=data.house[s.ab], c=houseCounts(s.ab), st=stateStatus('house',s.ab);
-    const flips=ds.map((r,i)=>({r,i})).filter(({r})=>r.called&&r.called!==r.held);
-    card.innerHTML=head(`House · ${c.n} seat${c.n>1?'s':''}`,st)+`
-      <div class="counts"><span style="color:var(--dem)">Dem ${c.cd}</span><span class="dim">${c.n-c.cd-c.cr} not called</span><span style="color:var(--rep)">Rep ${c.cr}</span></div>
-      <div class="districts">${simulated
-        ? ds.map((r,i)=>{const st=raceStatus(r),t=r.d+r.r+r.o;return `<span title="District ${i+1}: ${t?`D ${pct(r.d,t)}% · R ${pct(r.r,t)}% · ${Math.round(r.reporting)}% counted`:'awaiting results'}" style="background:${FILL[st]};color:${onSolid(st)}">${i+1}</span>`}).join('')
-        : ds.map(r=>{const st=raceStatus(r);return `<span title="${STATUS_TEXT[st]}" style="background:${FILL[st]}">&nbsp;</span>`}).join('')}</div>
-      <div class="meta">${simulated?`<span>Seats changing hands: ${flips.length?flips.map(({r,i})=>`District ${i+1}<span class="flip ${r.called}">${r.called} GAIN</span>`).join(' '):'none yet'}</span>`:`<span>Seats grouped by party, not by district number.</span>`}${pollLine(s.ab)}</div>`;
+    const t=totals('house');
+    $('tally').innerHTML=sw('var(--dem)',`Democrats ${t.wD} seats`)+sw('var(--rep)',`Republicans ${t.wR} seats`)+`<span class="dim">${t.races.length-t.wD-t.wR} not called</span>`;
     return;
   }
-  const r=data[chamber][s.ab];
-  const sub=chamber==='senate'?(SENATE_SPECIAL.has(s.ab)?'Senate · special election':'Senate'):'Governor';
-  if(!r){card.innerHTML=head(chamber==='senate'?'Senate':'Governor','none')+`<p class="waiting">No ${chamber==='senate'?'Senate':'governor'} race in ${s.en} this year.</p>`;return}
-  const st=raceStatus(r), flip=r.called&&r.called!==r.held, total=r.d+r.r+r.o;
-  const body = r.reporting<=0
-    ? `<p class="waiting">No votes counted yet. Results appear here once polls close and counting begins.</p>`
-    : `<div class="cands">${[['D',r.d],['R',r.r],[r.names?.I?'I':'O',r.o]].filter(([p,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([p,v])=>{
-      const nm=r.names?.[p], label=p==='O'?'Others':nm?`${esc(nm)} <span class="dim">(${p})</span>`:p==='I'?'Independent':PARTY1[p]+' candidate';
-      const col={D:'var(--dem)',R:'var(--rep)',I:'var(--ind)',O:'var(--muted)'}[p];
-      return `<div class="cand ${r.called===p?'win':''}">
-        <span class="nm">${label}</span>
-        <span class="pct">${pct(v,total)}%</span>
-        <span class="bar"><b style="width:${total?v/total*100:0}%;background:${col}"></b></span>
-      </div>`}).join('')}</div>`;
-  card.innerHTML=head(sub,st)+body+`
-    <div class="meta">${r.reporting>0?`<span>Est. <b>${Math.round(r.reporting)}%</b> of expected vote counted</span>`:''}
-    ${r.called&&r.calledAt?`<span>Race called at ${esc(r.calledAt)}</span>`:''}
-    <span>Seat currently held by ${PARTY[r.held]}${flip?`<span class="flip ${r.called}">${r.called} GAIN</span>`:''}</span>${pollLine(s.ab)}</div>`;
+  const t=totals(chamber), noun=chamber==='senate'?'seats':'states';
+  $('tally').innerHTML=`<span class="dim">Won this year:</span>`+sw('var(--dem)',`Democrats ${t.wD} ${noun}`)+sw('var(--rep)',`Republicans ${t.wR} ${noun}`)
+    +(t.wI?sw('var(--ind)',`Independents ${t.wI}`):'')+`<span class="dim">${t.races.length-t.wD-t.wR-t.wI} not called</span>`;
+}
+let hover=null;
+function renderInfo(){
+  const s=BY[hover||selected], el=$('info');
+  if(!s){el.innerHTML='<span class="dim">Hover over or tap a state to see who won.</span>';return}
+  const name=`<b>${s.en}</b>`;
+  if(chamber==='house'){
+    if(!data.house[s.ab]){el.innerHTML=`${name}<span class="dim">Non-voting delegate only</span>`;return}
+    const c=houseCounts(s.ab), st=stateStatus('house',s.ab);
+    el.innerHTML=`${name}<span class="badge ${st}">${STATUS_TEXT[st]}</span><span>Dem ${c.cd} · Rep ${c.cr} of ${c.n} seat${c.n>1?'s':''}</span>${c.n-c.cd-c.cr?`<span class="dim">${c.n-c.cd-c.cr} not called</span>`:''}`;
+    return;
+  }
+  const r=data[chamber][s.ab], office=chamber==='senate'?'Senate':'Governor';
+  if(!r){el.innerHTML=`${name}<span class="dim">No ${office.toLowerCase()} election this year</span>`;return}
+  const st=raceStatus(r), gain=r.called&&r.called!==r.held;
+  el.innerHTML=`${name}<span class="dim">${office}${SENATE_SPECIAL.has(s.ab)&&chamber==='senate'?' (special)':''}</span><span class="badge ${st}">${STATUS_TEXT[st]}</span>`
+    +(gain?`<span class="flip ${r.called}">${SHORT[r.called]} GAIN</span><span class="dim">from ${PARTY[r.held]}</span>`:`<span class="dim">Seat held by ${PARTY[r.held]}</span>`);
 }
 
-/* ---------- Tables ---------- */
-const leadCell=(r)=>{
-  if(!r) return '<span class="dim">–</span>';
-  if(r.called) return `<span class="lead"><i style="background:${FILL['called-'+r.called]}"></i>${SHORT[r.called]} win</span>`;
-  if(raceStatus(r)==='pending') return '<span class="dim">–</span>';
-  const p=leader(r), t=r.d+r.r+r.o, v={D:r.d,R:r.r,I:r.o}, second=Math.max(...Object.entries(v).filter(([k])=>k!==p).map(([,x])=>x));
-  return `<span class="lead"><i style="background:${FILL['called-'+p]}"></i>${SHORT[p]} +${((v[p]-second)/t*100).toFixed(1)}</span>`;
-};
-const progCell=v=>`<span class="prog">${Math.round(v)}%<span><b style="width:${v}%"></b></span></span>`;
+/* ---------- Results table ---------- */
 const rowAttrs=ab=>`data-ab="${ab}" class="${ab===selected?'sel':''}"`;
-function houseRow(s,withClose){
-  const c=houseCounts(s.ab), st=stateStatus('house',s.ab), counted=data.house[s.ab].reduce((a,r)=>a+r.reporting,0)/c.n;
-  return `<tr ${rowAttrs(s.ab)}><td>${s.en}</td>${withClose?`<td class="n">${thLabel(CLOSE_AT[s.ab])}</td>`:''}<td class="n">${c.n}</td><td class="n">${c.cd}</td><td class="n">${c.cr}</td><td class="n">${progCell(counted)}</td></tr>`;
+function houseRow(s){
+  const c=houseCounts(s.ab);
+  return `<tr ${rowAttrs(s.ab)}><td>${s.en}</td><td class="n">${c.n}</td><td class="n">${c.cd}</td><td class="n">${c.cr}</td><td class="n">${c.n-c.cd-c.cr}</td></tr>`;
 }
-function raceRow(s,withClose){
-  const r=data[chamber][s.ab];
-  return `<tr ${rowAttrs(s.ab)}><td>${s.en}${chamber==='senate'&&SENATE_SPECIAL.has(s.ab)?' <span class="dim">(special)</span>':''}</td>${withClose?`<td class="n">${thLabel(CLOSE_AT[s.ab])}</td>`:''}<td>${leadCell(r)}</td><td>${r.held==='D'?'Dem':'Rep'}${r.called&&r.called!==r.held?`<span class="flip ${r.called}">GAIN</span>`:''}</td><td class="n">${progCell(r.reporting)}</td></tr>`;
-}
-function head(withClose){
-  return chamber==='house'
-    ? `<tr><th>State</th>${withClose?'<th class="n">Polls close (TH)</th>':''}<th class="n">Seats</th><th class="n">Dem won</th><th class="n">Rep won</th><th class="n">Vote counted</th></tr>`
-    : `<tr><th>State</th>${withClose?'<th class="n">Polls close (TH)</th>':''}<th>Leading</th><th>Held by</th><th class="n">Vote counted</th></tr>`;
+function raceRow(s){
+  const r=data[chamber][s.ab], st=raceStatus(r);
+  return `<tr ${rowAttrs(s.ab)}><td>${s.en}${chamber==='senate'&&SENATE_SPECIAL.has(s.ab)?' <span class="dim">(special)</span>':''}</td><td><span class="badge ${st}">${STATUS_TEXT[st]}</span>${r.called&&r.called!==r.held?`<span class="flip ${r.called}">GAIN</span>`:''}</td><td>${PARTY[r.held]}</td></tr>`;
 }
 function renderTables(){
-  const L=CHAMBERS[chamber].label, rowFn=chamber==='house'?houseRow:raceRow;
-  $('keyTitle').textContent=`Key ${chamber==='governor'?'governor':L} races`;
-  $('kthead').innerHTML=head(true);
-  $('ktbody').innerHTML=KEY[chamber].map(ab=>rowFn(BY[ab],true)).join('');
-  $('allTitle').textContent=`All ${chamber==='governor'?'governor':L} races`;
+  const house=chamber==='house';
+  $('allTitle').textContent=`${CHAMBERS[chamber].label} results by state`;
+  $('thead').innerHTML=house
+    ? '<tr><th>State</th><th class="n">Seats</th><th class="n">Dem won</th><th class="n">Rep won</th><th class="n">Not called</th></tr>'
+    : '<tr><th>State</th><th>Result</th><th>Seat held before</th></tr>';
   const q=$('q').value.trim().toLowerCase();
-  const rows=STATES.filter(s=>chamber==='house'?data.house[s.ab]:data[chamber][s.ab])
+  const rows=STATES.filter(s=>house?data.house[s.ab]:data[chamber][s.ab])
     .filter(s=>!q||s.en.toLowerCase().includes(q)||s.ab.toLowerCase()===q);
-  $('thead').innerHTML=head(true);
-  $('tbody').innerHTML=rows.length?rows.map(s=>rowFn(s,true)).join(''):'<tr><td colspan="6" class="dim">No state matches your search.</td></tr>';
+  $('tbody').innerHTML=rows.length?rows.map(house?houseRow:raceRow).join(''):'<tr><td colspan="5" class="dim">No state matches your search.</td></tr>';
 }
 
 function render(){
-  renderBoards(); renderStatus(); renderMap(); renderCard(); renderTables();
+  renderBoards(); renderStatus(); renderMap(); renderTally(); renderInfo(); renderTables();
   document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.ch===chamber));
   const t=simulated?new Date():lastLoad;
   $('updated').textContent=t?t.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'–';
 }
 function select(ab){ selected=ab; render(); }
 function setChamber(ch){
-  chamber=ch; selected=CHAMBERS[ch].first;
+  chamber=ch; selected=null;
   try{history.replaceState(null,'','#'+ch)}catch(e){}
   render();
 }
@@ -601,7 +550,7 @@ document.querySelectorAll('.toggle button').forEach(b=>b.addEventListener('click
   mapMode=b.dataset.mode; document.querySelectorAll('.toggle button').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderMap();
 }));
 const pick=e=>{const el=e.target.closest('[data-ab]'); if(el) select(el.dataset.ab)};
-['tbody','ktbody'].forEach(id=>$(id).addEventListener('click',pick));
+$('tbody').addEventListener('click',pick);
 $('q').addEventListener('input',renderTables);
 function stopTimer(){ if(timer){clearInterval(timer);timer=null} $('play').textContent='▶ Run count'; $('live').classList.remove('running'); }
 $('sim').addEventListener('click',()=>{
