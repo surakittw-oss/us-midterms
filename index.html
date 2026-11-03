@@ -420,7 +420,9 @@ async function readTab(name, mustHave){
   return rows.length && mustHave in rows[0] ? rows : [];
 }
 const num=v=>{const x=parseFloat(String(v??'').replace(/[%,]/g,''));return Number.isFinite(x)?x:null};
+let lastPoll=0;
 async function loadSheet(){
+  lastPoll=Date.now();
   const [res,house]=await Promise.allSettled([readTab('results','race'),readTab('house','dem_won')]);
   if(res.status==='fulfilled'){ sheet.results=res.value; lastLoad=new Date(); loadError=false; } else loadError=true;
   if(house.status==='fulfilled') sheet.house=house.value;
@@ -687,7 +689,19 @@ $('play').addEventListener('click',()=>{
 });
 
 applySheet();
-loadSheet(); setInterval(loadSheet,REFRESH_MS);
+loadSheet();
+// Poll only while someone can see the results: the tab is visible and, inside an embed, the frame is on screen.
+// Readers who leave the article open in a background tab, or scroll past the map, stop costing requests.
+let onScreen=true, pollTimer=null;
+function schedulePolling(){
+  clearInterval(pollTimer); pollTimer=null;
+  if(document.visibilityState!=='visible'||!onScreen) return;
+  if(Date.now()-lastPoll>=REFRESH_MS) loadSheet();   // catch up straight away when they come back
+  pollTimer=setInterval(loadSheet,REFRESH_MS);
+}
+document.addEventListener('visibilitychange',schedulePolling);
+new IntersectionObserver(([e])=>{onScreen=e.isIntersecting; schedulePolling()}).observe(document.body);
+schedulePolling();   // start now; don't rely on the observer's first callback
 setInterval(renderStatus,60000);
 const fromHash=location.hash.slice(1);
 setChamber(CHAMBERS[fromHash]?fromHash:'senate');
