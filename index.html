@@ -49,7 +49,8 @@ button{font:inherit;cursor:pointer}
 h1{font-weight:800;font-size:clamp(26px,4.2vw,40px);line-height:1.15;margin:4px 0 0;letter-spacing:-.01em;text-wrap:balance}
 .simtag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--live);color:var(--on-solid);border-radius:3px;padding:2px 8px;margin-left:8px;vertical-align:middle}
 .boards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-@media (max-width:860px){.boards{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:860px){.boards{gap:10px}.board{padding:12px}.bnums b{font-size:26px}}
+@media (max-width:600px){.boards{grid-template-columns:minmax(0,1fr)}}
 .board{background:var(--band-2);border-radius:8px;padding:14px 16px;display:grid;gap:8px;text-align:left;color:var(--on-band);border:2px solid transparent}
 .board[aria-pressed="true"]{border-color:var(--on-band)}
 .board h2{margin:0;font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
@@ -118,20 +119,39 @@ tbody tr.sel{background:var(--bg);box-shadow:inset 3px 0 0 var(--rep)}
 .dim{color:var(--muted)}
 details{display:grid;gap:10px}
 details summary{cursor:pointer;font-weight:700;font-size:16px;padding:6px 0}
-.listhead{display:flex;justify-content:flex-end;margin:10px 0}
+.listhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0}
+.listhead .embedbtn{color:var(--muted);margin-left:0}
 input[type=search]{font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);width:min(280px,100%)}
 footer{font-size:13px;color:var(--muted);display:grid;gap:8px;border-top:1px solid var(--line);padding-top:16px}
 footer .ctl{display:flex;gap:8px;flex-wrap:wrap}
 .btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:5px 12px;font-size:13px;font-weight:600}
 .btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+/* embed tools (hidden inside embeds) */
+.embedbtn{border:1px solid currentColor;background:none;color:inherit;font-size:12px;font-weight:600;border-radius:4px;padding:2px 8px;margin-left:10px;opacity:.85;white-space:nowrap}
+.embedbtn:hover{opacity:1}
+.maphead .embedbtn{color:var(--muted);margin-left:0}
+.embedded .embedbtn,.embedded #ctl{display:none}
+.embedded .page{padding-block:12px}
+dialog{border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:min(560px,calc(100vw - 32px));padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(8,18,40,.55)}
+.dlg{display:grid;gap:12px}
+.dlg h2{font-size:20px}
+.dlgrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dlg label{display:grid;gap:4px;font-size:13px;font-weight:600;color:var(--muted)}
+.dlg label.chk{display:flex;align-items:center;gap:8px;font-weight:500;color:var(--ink)}
+.dlg select{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.dlg textarea{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.45;width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);resize:vertical}
+.dlg .dim{font-size:13px;margin:0}
+.dlgbtns{display:flex;gap:8px;justify-content:flex-end}
 </style>
 </head>
 <body>
 
-<header class="band gut">
+<header class="band gut" data-part="boards">
   <div class="inner">
     <div>
-      <div class="kick"><span>Live results · Tuesday, November 3, 2026</span><span class="live" id="live"><i class="dot"></i>Updated <span class="num" id="updated">–</span></span></div>
+      <div class="kick"><span>Live results · Tuesday, November 3, 2026</span><span class="live" id="live"><i class="dot"></i>Updated <span class="num" id="updated">–</span><button class="embedbtn" type="button" data-embed="boards">&lt;/&gt; Embed</button></span></div>
       <h1>US Midterm Elections 2026<span class="simtag" id="simtag" hidden>Simulated data</span></h1>
     </div>
     <div class="boards">
@@ -143,12 +163,12 @@ footer .ctl{display:flex;gap:8px;flex-wrap:wrap}
 </header>
 
 <main class="gut"><div class="inner page">
-  <div>
+  <div data-part="intro">
     <p class="intro">Americans vote for all 435 seats in the House of Representatives, 35 of the 100 Senate seats and 36 governors. The result decides whether President Trump's Republicans keep control of Congress for the last two years of his term.</p>
     <p class="status" id="status"></p>
   </div>
 
-  <section style="display:grid;gap:14px">
+  <section style="display:grid;gap:14px" data-part="map">
     <nav class="tabs" role="tablist" aria-label="Office">
       <button class="tab" role="tab" data-ch="senate">Senate</button>
       <button class="tab" role="tab" data-ch="house">House</button>
@@ -160,6 +180,7 @@ footer .ctl{display:flex;gap:8px;flex-wrap:wrap}
           <button type="button" data-mode="geo" aria-pressed="true">Map</button>
           <button type="button" data-mode="tiles" aria-pressed="false">Tiles</button>
         </div>
+        <button class="embedbtn" type="button" data-embed="map">&lt;/&gt; Embed</button>
       </div>
       <div class="tally" id="tally"></div>
       <svg class="map" id="geo" viewBox="0 0 1040 610" role="img" aria-label="Map of results by state"></svg>
@@ -169,18 +190,43 @@ footer .ctl{display:flex;gap:8px;flex-wrap:wrap}
     </div>
   </section>
 
-  <details>
+  <details data-part="table">
     <summary id="allTitle">Results by state</summary>
-    <div class="listhead"><input type="search" id="q" placeholder="Search state, e.g. Texas or TX" aria-label="Search state"></div>
+    <div class="listhead"><button class="embedbtn" type="button" data-embed="table">&lt;/&gt; Embed</button><input type="search" id="q" placeholder="Search state, e.g. Texas or TX" aria-label="Search state"></div>
     <div class="tablebox"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
   </details>
 
-  <footer>
+  <footer data-part="notes">
     <span>Senate: 35 seats are up (33 regular plus special elections in Ohio and Florida). Independents who caucus with Democrats are counted as Democrats. In a 50–50 Senate the Republican vice-president casts the deciding vote. House: 218 seats needed for a majority.</span>
     <span>Poll closing times are the first closing in each state, shown in Thailand time (ET + 12 hours). Results refresh automatically every 30 seconds.</span>
-    <div class="ctl" id="ctl"><button class="btn" id="sim" type="button">Preview with simulated results</button><button class="btn" id="play" type="button" hidden>▶ Run count</button></div>
+    <div class="ctl" id="ctl"><button class="btn" id="sim" type="button">Preview with simulated results</button><button class="btn" id="play" type="button" hidden>▶ Run count</button><button class="btn" type="button" data-embed="all">&lt;/&gt; Embed whole page</button></div>
   </footer>
 </div></main>
+
+<dialog id="embedDlg" aria-labelledby="embedTitle">
+  <form method="dialog" class="dlg">
+    <h2 id="embedTitle">Embed code</h2>
+    <div class="dlgrow">
+      <label for="ePart">Section
+        <select id="ePart">
+          <option value="all">Whole page</option>
+          <option value="boards">Seat boards</option>
+          <option value="map">Map</option>
+          <option value="table">Results table</option>
+        </select></label>
+      <label for="eCh">Starts on
+        <select id="eCh">
+          <option value="senate">Senate</option>
+          <option value="house">House</option>
+          <option value="governor">Governor</option>
+        </select></label>
+    </div>
+    <label class="chk" for="eTabs"><input type="checkbox" id="eTabs" checked> Let readers switch between Senate, House and Governor</label>
+    <textarea id="eCode" rows="9" readonly aria-label="Embed code"></textarea>
+    <p class="dim" id="eNote">Paste into a Custom HTML block (WordPress) or the article's HTML view. The frame resizes itself to fit.</p>
+    <div class="dlgbtns"><button class="btn primary" type="button" id="eCopy">Copy code</button><button class="btn" value="close">Close</button></div>
+  </form>
+</dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
@@ -574,9 +620,58 @@ const fromHash=location.hash.slice(1);
 setChamber(CHAMBERS[fromHash]?fromHash:'senate');
 
 /* ---------- Embedding ----------
-   ?embed=1 hides the demo controls so readers never see simulated numbers.
+   ?embed=1 hides the demo controls and embed buttons so readers never see simulated numbers.
+   &part=boards|map|table shows one section only; &tabs=0 hides the office tabs.
    Inside an iframe the page posts its height so the host page can size the frame (see embed.html). */
-if(new URLSearchParams(location.search).has('embed')) $('ctl').hidden=true;
+const PUBLIC_URL='https://surakittw-oss.github.io/us-midterms/';
+const PARTS={all:'Full results page',boards:'Seat boards',map:'Results map',table:'Results table'};
+const params=new URLSearchParams(location.search);
+if(params.has('embed')){
+  document.documentElement.classList.add('embedded');
+  const part=params.get('part');
+  if(PARTS[part]&&part!=='all'){
+    document.querySelectorAll('[data-part]').forEach(el=>{el.hidden=el.dataset.part!==part});
+    if(part==='boards') document.querySelector('main').hidden=true;
+    if(part==='table'){
+      const det=document.querySelector('details[data-part="table"]'); det.open=true;
+      det.querySelector('summary').after(document.querySelector('.tabs'));   // tabs live in the map section
+    }
+  }
+  if(params.get('tabs')==='0') document.querySelector('.tabs').hidden=true;
+}
+
+function embedCode(part,ch,tabs){
+  const q=new URLSearchParams({embed:'1'});
+  if(part!=='all') q.set('part',part);
+  if(!tabs&&part!=='boards') q.set('tabs','0');
+  const src=PUBLIC_URL+'?'+q+(part==='boards'?'':'#'+ch);
+  const h={all:1500,boards:320,map:820,table:900}[part];
+  const label=part==='boards'?PARTS.boards:`${PARTS[part]} (${CHAMBERS[ch].label})`;
+  return `<div class="us-midterms-embed">
+<iframe src="${src}" title="US midterm elections 2026: ${label}" style="display:block;width:100%;height:${h}px;border:0;overflow:hidden" scrolling="no" loading="lazy"></iframe>
+<script>
+(function(){var f=document.currentScript.parentNode.querySelector('iframe');
+window.addEventListener('message',function(e){
+if(e.origin!=='${new URL(PUBLIC_URL).origin}'||e.source!==f.contentWindow)return;
+var d=e.data;if(d&&d.type==='us-midterms:height'&&d.height>0)f.style.height=d.height+'px';});})();
+<\/script>
+</div>`;
+}
+function refreshEmbed(){
+  const part=$('ePart').value, boards=part==='boards';
+  $('eCh').disabled=boards; $('eTabs').disabled=boards||part==='all';
+  $('eCode').value=embedCode(part,$('eCh').value,part==='all'||$('eTabs').checked);
+}
+document.querySelectorAll('[data-embed]').forEach(b=>b.addEventListener('click',()=>{
+  $('ePart').value=b.dataset.embed; $('eCh').value=chamber; $('eTabs').checked=true;
+  refreshEmbed(); $('eCopy').textContent='Copy code'; $('embedDlg').showModal();
+}));
+['ePart','eCh','eTabs'].forEach(id=>$(id).addEventListener('change',refreshEmbed));
+$('eCopy').addEventListener('click',()=>{
+  const ta=$('eCode');
+  navigator.clipboard.writeText(ta.value).then(()=>{$('eCopy').textContent='Copied'})
+    .catch(()=>{ta.focus();ta.select();$('eCopy').textContent='Press Ctrl+C / ⌘C'});
+});
 if(window.parent!==window){
   let lastH=0;
   const postHeight=()=>{const h=Math.ceil(document.documentElement.getBoundingClientRect().height);
