@@ -178,7 +178,7 @@ footer .ctl{display:flex;gap:8px;flex-wrap:wrap}
   <footer>
     <span>Senate: 35 seats are up (33 regular plus special elections in Ohio and Florida). Independents who caucus with Democrats are counted as Democrats. In a 50–50 Senate the Republican vice-president casts the deciding vote. House: 218 seats needed for a majority.</span>
     <span>Poll closing times are the first closing in each state, shown in Thailand time (ET + 12 hours). Results refresh automatically every 30 seconds.</span>
-    <div class="ctl"><button class="btn" id="sim" type="button">Preview with simulated results</button><button class="btn" id="play" type="button" hidden>▶ Run count</button></div>
+    <div class="ctl" id="ctl"><button class="btn" id="sim" type="button">Preview with simulated results</button><button class="btn" id="play" type="button" hidden>▶ Run count</button></div>
   </footer>
 </div></main>
 
@@ -572,6 +572,18 @@ loadSheet(); setInterval(loadSheet,REFRESH_MS);
 setInterval(renderStatus,60000);
 const fromHash=location.hash.slice(1);
 setChamber(CHAMBERS[fromHash]?fromHash:'senate');
+
+/* ---------- Embedding ----------
+   ?embed=1 hides the demo controls so readers never see simulated numbers.
+   Inside an iframe the page posts its height so the host page can size the frame (see embed.html). */
+if(new URLSearchParams(location.search).has('embed')) $('ctl').hidden=true;
+if(window.parent!==window){
+  let lastH=0;
+  const postHeight=()=>{const h=Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if(h!==lastH){lastH=h;window.parent.postMessage({type:'us-midterms:height',height:h},'*')}};
+  new ResizeObserver(postHeight).observe(document.body);
+  window.addEventListener('load',postHeight);
+}
 </script>
 </body>
 </html>

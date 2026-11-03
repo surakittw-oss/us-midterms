@@ -1,0 +1,23 @@
+<!--
+  US Midterms 2026 results — embed code
+  Paste everything between the START and END lines into the article (WordPress: Custom HTML block, or the Text tab).
+  Start on another tab by adding #house or #governor to the end of the src, e.g. ...?embed=1#house
+-->
+
+<!-- START -->
+<iframe id="us-midterms-2026"
+  src="https://surakittw-oss.github.io/us-midterms/?embed=1"
+  title="US midterm elections 2026: live results"
+  style="display:block;width:100%;height:1400px;border:0;overflow:hidden"
+  scrolling="no" loading="lazy"></iframe>
+<script>
+  // Resize the frame to fit the results page as it updates
+  window.addEventListener('message', function (e) {
+    if (e.origin !== 'https://surakittw-oss.github.io') return;
+    var d = e.data;
+    if (d && d.type === 'us-midterms:height' && d.height > 0) {
+      document.getElementById('us-midterms-2026').style.height = d.height + 'px';
+    }
+  });
+</script>
+<!-- END -->
