@@ -14,17 +14,20 @@
   --band:#0b1d3f; --band-2:#13295a; --on-band:#ffffff; --band-muted:#aab6d1;
   --dem:#2456c7; --dem-soft:#a9bdf0; --rep:#cf2f35; --rep-soft:#f2aeb0;
   --pending:#cdd2dc; --none:#e8ebf1; --live:#ff5a5f; --on-solid:#ffffff;
+  --ind:#7b55c7; --ind-soft:#cdbdf0;
   --f-body:"Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0b1120; --surface:#121a2c; --ink:#e7ebf4; --muted:#9aa5bb; --line:#243049;
   --band:#081530; --band-2:#102454; --on-band:#ffffff; --band-muted:#9eabc8;
   --dem:#5b85f0; --dem-soft:#2b4380; --rep:#ee5a5f; --rep-soft:#7c2f33;
+  --ind:#9b7be6; --ind-soft:#45306f;
   --pending:#36405a; --none:#1a2338; --live:#ff6b70; --on-solid:#ffffff; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0b1120; --surface:#121a2c; --ink:#e7ebf4; --muted:#9aa5bb; --line:#243049;
   --band:#081530; --band-2:#102454; --on-band:#ffffff; --band-muted:#9eabc8;
   --dem:#5b85f0; --dem-soft:#2b4380; --rep:#ee5a5f; --rep-soft:#7c2f33;
+  --ind:#9b7be6; --ind-soft:#45306f;
   --pending:#36405a; --none:#1a2338; --live:#ff6b70; --on-solid:#ffffff; color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55}
@@ -100,6 +103,7 @@ svg.map{width:100%;height:auto;display:block}
 .badge{font-size:12px;font-weight:700;padding:2px 8px;border-radius:3px;white-space:nowrap;display:inline-block}
 .badge.called-D{background:var(--dem);color:var(--on-solid)} .badge.called-R{background:var(--rep);color:var(--on-solid)}
 .badge.lead-D{background:var(--dem-soft);color:var(--ink)} .badge.lead-R{background:var(--rep-soft);color:var(--ink)}
+.badge.called-I{background:var(--ind);color:var(--on-solid)} .badge.lead-I{background:var(--ind-soft);color:var(--ink)}
 .badge.pending,.badge.none{background:var(--pending);color:var(--ink)}
 .cands{display:grid;gap:12px}
 .cand{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline}
@@ -112,7 +116,7 @@ svg.map{width:100%;height:auto;display:block}
 .meta{font-size:13px;color:var(--muted);display:grid;gap:4px;border-top:1px solid var(--line);padding-top:12px}
 .waiting{font-size:14px;color:var(--muted);background:var(--bg);border-radius:6px;padding:12px;margin:0}
 .flip{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;border-radius:3px;padding:0 6px;margin-left:6px;color:var(--on-solid)}
-.flip.D{background:var(--dem)} .flip.R{background:var(--rep)}
+.flip.D{background:var(--dem)} .flip.R{background:var(--rep)} .flip.I{background:var(--ind)}
 .counts{display:flex;justify-content:space-between;font-size:13px;font-weight:600}
 .districts{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:3px}
 .districts span{font-size:11px;text-align:center;padding:4px 0;border-radius:2px;font-variant-numeric:tabular-nums}
@@ -198,7 +202,7 @@ footer .ctl{display:flex;gap:8px;flex-wrap:wrap}
 
   <footer>
     <span>Senate: 35 seats are up (33 regular plus special elections in Ohio and Florida). Independents who caucus with Democrats are counted as Democrats. In a 50–50 Senate the Republican vice-president casts the deciding vote. House: 218 seats needed for a majority.</span>
-    <span>Poll closing times are the first closing in each state, shown in Thailand time (ET + 12 hours).</span>
+    <span>Poll closing times are the first closing in each state, shown in Thailand time (ET + 12 hours). Results refresh automatically every 30 seconds.</span>
     <div class="ctl"><button class="btn" id="sim" type="button">Preview with simulated results</button><button class="btn" id="play" type="button" hidden>▶ Run count</button></div>
   </footer>
 </div></main>
@@ -289,10 +293,13 @@ const PARTY = {D:'Democrats', R:'Republicans'};
 const PARTY1 = {D:'Democratic', R:'Republican'};
 
 /* ---------- Results data ----------
-   Live mode starts with every race at zero votes. In production, fill each race from the results feed:
-   race = {expected, reporting (0–100), d, r, o (votes), called: 'D'|'R'|null, held: 'D'|'R'}
+   Live results come from the newsroom's Google Sheet (tabs "results" and "house"), re-read every 30 s.
+   race = {reporting (0–100), d, r, o (vote share or votes), called: 'D'|'R'|'I'|null, held, names, calledAt}
    "Preview with simulated results" swaps in random numbers for demos only. */
+const SHEET_ID='15Bq_0XLvVhgR3MhvmjbQDmLrvoXAyzKOcpE6beV-SaA';
+const REFRESH_MS=30000;
 let rnd=Math.random, data, simulated=false;
+let sheet={results:[],house:[]}, lastLoad=null, loadError=false;
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function gauss(){let u=0,v=0;while(!u)u=rnd();while(!v)v=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
@@ -322,32 +329,92 @@ function build(seed){
 const allRaces=()=>[...Object.values(data.senate),...Object.values(data.governor),...Object.values(data.house).flat()];
 function tick(){ allRaces().forEach(r=>{ if(rnd()<0.35) stepRace(r, rnd()*9+1) }); render(); }
 
+/* ---------- Google Sheet feed ---------- */
+const sheetURL=name=>`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}&t=${Date.now()}`;
+function parseCSV(text){
+  const rows=[]; let row=[], cell='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){cell+='"';i++} else q=false } else cell+=c; }
+    else if(c==='"') q=true;
+    else if(c===','){ row.push(cell); cell=''; }
+    else if(c==='\n'||c==='\r'){ if(c==='\r'&&text[i+1]==='\n') i++; row.push(cell); rows.push(row); row=[]; cell=''; }
+    else cell+=c;
+  }
+  if(cell!==''||row.length){ row.push(cell); rows.push(row); }
+  const head=(rows.shift()||[]).map(h=>h.trim().toLowerCase());
+  return rows.filter(r=>r.some(v=>v.trim()!=='')).map(r=>Object.fromEntries(head.map((h,i)=>[h,(r[i]||'').trim()])));
+}
+// Read one tab; an unknown tab name makes Google return the first tab, so check for a required column.
+async function readTab(name, mustHave){
+  const res=await fetch(sheetURL(name),{cache:'no-store'});
+  if(!res.ok) throw new Error(`${name}: HTTP ${res.status}`);
+  const rows=parseCSV(await res.text());
+  return rows.length && mustHave in rows[0] ? rows : [];
+}
+const num=v=>{const x=parseFloat(String(v??'').replace(/[%,]/g,''));return Number.isFinite(x)?x:null};
+async function loadSheet(){
+  const [res,house]=await Promise.allSettled([readTab('results','race'),readTab('house','dem_won')]);
+  if(res.status==='fulfilled'){ sheet.results=res.value; lastLoad=new Date(); loadError=false; } else loadError=true;
+  if(house.status==='fulfilled') sheet.house=house.value;
+  if(!simulated){ applySheet(); render(); }
+}
+function applySheet(){
+  build(1);
+  for(const row of sheet.results){
+    const r=data[(row.race||'').toLowerCase()]?.[(row.state||'').toUpperCase()]; if(!r) continue;
+    let d=num(row.dem_pct)??0, rp=num(row.rep_pct)??0, o=num(row.other_pct);
+    if(d<=1&&rp<=1&&d+rp>0){ d*=100; rp*=100; if(o!=null&&o<=1) o*=100; }   // sheet formatted as %
+    let rep=num(row.reporting_pct)??0; if(rep>0&&rep<=1&&d>1) rep*=100;
+    r.d=d; r.r=rp; r.o=o??(d+rp>0?Math.max(0,100-d-rp):0);
+    r.reporting=d+rp+r.o>0?Math.max(rep,0.1):rep;
+    const w=(row.winner||'').toUpperCase(); r.called=['D','R','I'].includes(w)?w:null;
+    r.names={D:row.dem_candidate,R:row.rep_candidate,I:row.other_candidate};
+    r.calledAt=row.called_at;
+  }
+  for(const s of STATES) if(s.house) data.house[s.ab]=Array.from({length:s.house},()=>({held:null,reporting:0,d:0,r:0,o:0,called:null}));
+  for(const row of sheet.house){
+    const ds=data.house[(row.state||'').toUpperCase()]; if(!ds) continue;
+    const rep=num(row.reporting_pct)??0; let k=0;
+    const put=(n,fn)=>{for(let i=0;i<(n||0)&&k<ds.length;i++,k++){ds[k].reporting=rep;fn(ds[k])}};
+    put(num(row.dem_won),x=>{x.called='D';x.d=1});
+    put(num(row.rep_won),x=>{x.called='R';x.r=1});
+    put(num(row.dem_ahead),x=>{x.d=1;x.reporting=Math.max(rep,0.1)});
+    put(num(row.rep_ahead),x=>{x.r=1;x.reporting=Math.max(rep,0.1)});
+    ds.forEach(x=>{ if(!x.called&&!x.d&&!x.r) x.reporting=rep });
+  }
+}
+
 /* ---------- Derived state ---------- */
+// Leader by share; the third column only counts as a candidate when the sheet names one
+const leader=r=>{const top=Math.max(r.d,r.r,r.names?.I?r.o:0);return r.names?.I&&r.o===top&&r.o>r.d&&r.o>r.r?'I':r.d>=r.r?'D':'R'};
 function raceStatus(r){
   if(!r) return 'none';
   if(r.called) return 'called-'+r.called;
-  if(r.reporting<=0) return 'pending';
-  return 'lead-'+(r.d>=r.r?'D':'R');
+  if(r.reporting<=0||r.d+r.r+r.o<=0) return 'pending';
+  return 'lead-'+leader(r);
 }
 const houseCounts=ab=>{const ds=data.house[ab]||[],c=s=>ds.filter(r=>raceStatus(r)===s).length;return {n:ds.length,cd:c('called-D'),cr:c('called-R'),ld:c('lead-D'),lr:c('lead-R')}};
 function stateStatus(ch, ab){
   if(ch!=='house') return raceStatus(data[ch][ab]);
   if(!data.house[ab]) return 'none';
-  const {cd,cr,ld,lr}=houseCounts(ab);
-  if(cd+cr>0 && cd!==cr) return 'called-'+(cd>cr?'D':'R');
+  const {n,cd,cr,ld,lr}=houseCounts(ab);
+  if(cd>n/2) return 'called-D';   // a party has secured most of the state's seats
+  if(cr>n/2) return 'called-R';
   if(ld+cd===lr+cr) return 'pending';
   return 'lead-'+(ld+cd>lr+cr?'D':'R');
 }
-const FILL={'called-D':'var(--dem)','lead-D':'var(--dem-soft)','called-R':'var(--rep)','lead-R':'var(--rep-soft)','pending':'var(--pending)','none':'var(--none)'};
-const STATUS_TEXT={'called-D':'Dem win','called-R':'Rep win','lead-D':'Dem ahead','lead-R':'Rep ahead','pending':'Awaiting results','none':'No election'};
+const FILL={'called-D':'var(--dem)','lead-D':'var(--dem-soft)','called-R':'var(--rep)','lead-R':'var(--rep-soft)','called-I':'var(--ind)','lead-I':'var(--ind-soft)','pending':'var(--pending)','none':'var(--none)'};
+const STATUS_TEXT={'called-D':'Dem win','called-R':'Rep win','called-I':'Ind win','lead-D':'Dem ahead','lead-R':'Rep ahead','lead-I':'Ind ahead','pending':'Awaiting results','none':'No election'};
+const SHORT={D:'Dem',R:'Rep',I:'Ind'};
 const racesOf=ch=>ch==='house'?Object.values(data.house).flat():Object.values(data[ch]);
-const fmt=n=>Math.round(n).toLocaleString('en-US');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pct=(a,t)=>t?(a/t*100).toFixed(1):'0.0';
 const onSolid=st=>st.startsWith('called')?'var(--on-solid)':'var(--ink)';
 function totals(ch){
   const C=CHAMBERS[ch], races=racesOf(ch), n=s=>races.filter(r=>raceStatus(r)===s).length;
-  const wD=n('called-D'), wR=n('called-R');
-  return {races, wD, wR, lD:n('lead-D'), lR:n('lead-R'), D:C.hold.D+wD, R:C.hold.R+wR};
+  const wD=n('called-D'), wR=n('called-R'), wI=n('called-I');
+  return {races, wD, wR, wI, lD:n('lead-D'), lR:n('lead-R'), D:C.hold.D+wD, R:C.hold.R+wR};
 }
 
 let chamber='senate', selected=null, timer=null, mapMode='geo';
@@ -368,7 +435,7 @@ function renderBoards(){
         ${C.mark?`<i class="bmark" style="left:calc(${C.mark/C.total*100}% - 1px)"><small>${C.markText}</small></i>`:''}
       </div>
       <div class="bfoot"><span>Democrats</span><span>Republicans</span></div>
-      <div class="bfoot"><span>${C.hold.D+C.hold.R?'<i></i>Not up for election':''}</span><span class="num">${t.wD+t.wR}/${t.races.length} ${noun} called</span></div>`;
+      <div class="bfoot"><span>${C.hold.D+C.hold.R?'<i></i>Not up for election':''}${t.wI?` · Ind ${t.wI}`:''}</span><span class="num">${t.wD+t.wR+t.wI}/${t.races.length} ${noun} called</span></div>`;
   });
 }
 
@@ -377,7 +444,8 @@ function renderStatus(){
   const counted=allRaces().some(r=>r.reporting>0), now=Date.now(), next=POLL_CLOSE.find(([h])=>closeUTC(h)>now);
   const s=CHAMBERS.senate, t=totals('senate');
   let line;
-  if(!counted) line = next ? `No votes have been counted yet. The first polls close at ${thLabel(next[0])} Thailand time (${etLabel(next[0])}) in ${next[1].split(' ').map(ab=>BY[ab].en).join(' and ')}.` : 'Waiting for the first results.';
+  if(loadError&&!simulated) line='Could not reach the results sheet. Showing the last results loaded; retrying every 30 seconds.';
+  else if(!counted) line = next ? `No votes have been counted yet. The first polls close at ${thLabel(next[0])} Thailand time (${etLabel(next[0])}) in ${next[1].split(' ').map(ab=>BY[ab].en).join(' and ')}.` : 'Waiting for the first results.';
   else if(t.D>=51) line='Democrats have won control of the Senate.';
   else if(t.R>=50) line='Republicans have kept control of the Senate.';
   else line=`Democrats need ${51-t.D} more Senate seats for a majority. Republicans need ${50-t.R} to keep control.`;
@@ -435,7 +503,9 @@ function renderMap(){
     });
   }
   const sq=(c,t)=>`<span><i style="background:${c}"></i>${t}</span>`;
-  $('legend').innerHTML=sq('var(--dem)','Dem win')+sq('var(--dem-soft)','Dem ahead')+sq('var(--rep)','Rep win')+sq('var(--rep-soft)','Rep ahead')+sq('var(--pending)','Awaiting results')+sq('var(--none)','No election')
+  const hasInd=chamber!=='house'&&Object.values(data[chamber]).some(r=>r.names?.I);
+  $('legend').innerHTML=sq('var(--dem)','Dem win')+sq('var(--dem-soft)','Dem ahead')+sq('var(--rep)','Rep win')+sq('var(--rep-soft)','Rep ahead')
+    +(hasInd?sq('var(--ind)','Ind win')+sq('var(--ind-soft)','Ind ahead'):'')+sq('var(--pending)','Awaiting results')+sq('var(--none)','No election')
     +(mapMode==='tiles'&&chamber==='house'?'<span>Numbers: seats won, Dem–Rep</span>':'');
 }
 
@@ -451,8 +521,10 @@ function renderCard(){
     const flips=ds.map((r,i)=>({r,i})).filter(({r})=>r.called&&r.called!==r.held);
     card.innerHTML=head(`House · ${c.n} seat${c.n>1?'s':''}`,st)+`
       <div class="counts"><span style="color:var(--dem)">Dem ${c.cd}</span><span class="dim">${c.n-c.cd-c.cr} not called</span><span style="color:var(--rep)">Rep ${c.cr}</span></div>
-      <div class="districts">${ds.map((r,i)=>{const st=raceStatus(r),t=r.d+r.r+r.o;return `<span title="District ${i+1}: ${t?`D ${pct(r.d,t)}% · R ${pct(r.r,t)}% · ${Math.round(r.reporting)}% counted`:'awaiting results'}" style="background:${FILL[st]};color:${onSolid(st)}">${i+1}</span>`}).join('')}</div>
-      <div class="meta"><span>Seats changing hands: ${flips.length?flips.map(({r,i})=>`District ${i+1}<span class="flip ${r.called}">${r.called} GAIN</span>`).join(' '):'none yet'}</span>${pollLine(s.ab)}</div>`;
+      <div class="districts">${simulated
+        ? ds.map((r,i)=>{const st=raceStatus(r),t=r.d+r.r+r.o;return `<span title="District ${i+1}: ${t?`D ${pct(r.d,t)}% · R ${pct(r.r,t)}% · ${Math.round(r.reporting)}% counted`:'awaiting results'}" style="background:${FILL[st]};color:${onSolid(st)}">${i+1}</span>`}).join('')
+        : ds.map(r=>{const st=raceStatus(r);return `<span title="${STATUS_TEXT[st]}" style="background:${FILL[st]}">&nbsp;</span>`}).join('')}</div>
+      <div class="meta">${simulated?`<span>Seats changing hands: ${flips.length?flips.map(({r,i})=>`District ${i+1}<span class="flip ${r.called}">${r.called} GAIN</span>`).join(' '):'none yet'}</span>`:`<span>Seats grouped by party, not by district number.</span>`}${pollLine(s.ab)}</div>`;
     return;
   }
   const r=data[chamber][s.ab];
@@ -461,23 +533,27 @@ function renderCard(){
   const st=raceStatus(r), flip=r.called&&r.called!==r.held, total=r.d+r.r+r.o;
   const body = r.reporting<=0
     ? `<p class="waiting">No votes counted yet. Results appear here once polls close and counting begins.</p>`
-    : `<div class="cands">${[['D',r.d],['R',r.r],['O',r.o]].sort((a,b)=>b[1]-a[1]).map(([p,v])=>`
-      <div class="cand ${r.called===p?'win':''}">
-        <span class="nm">${p==='O'?'Others':PARTY1[p]+' candidate'}</span>
+    : `<div class="cands">${[['D',r.d],['R',r.r],[r.names?.I?'I':'O',r.o]].filter(([p,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([p,v])=>{
+      const nm=r.names?.[p], label=p==='O'?'Others':nm?`${esc(nm)} <span class="dim">(${p})</span>`:p==='I'?'Independent':PARTY1[p]+' candidate';
+      const col={D:'var(--dem)',R:'var(--rep)',I:'var(--ind)',O:'var(--muted)'}[p];
+      return `<div class="cand ${r.called===p?'win':''}">
+        <span class="nm">${label}</span>
         <span class="pct">${pct(v,total)}%</span>
-        <span class="bar"><b style="width:${total?v/total*100:0}%;background:${p==='D'?'var(--dem)':p==='R'?'var(--rep)':'var(--muted)'}"></b></span>
-        <span class="votes">${fmt(v)} votes</span>
-      </div>`).join('')}</div>`;
+        <span class="bar"><b style="width:${total?v/total*100:0}%;background:${col}"></b></span>
+      </div>`}).join('')}</div>`;
   card.innerHTML=head(sub,st)+body+`
     <div class="meta">${r.reporting>0?`<span>Est. <b>${Math.round(r.reporting)}%</b> of expected vote counted</span>`:''}
+    ${r.called&&r.calledAt?`<span>Race called at ${esc(r.calledAt)}</span>`:''}
     <span>Seat currently held by ${PARTY[r.held]}${flip?`<span class="flip ${r.called}">${r.called} GAIN</span>`:''}</span>${pollLine(s.ab)}</div>`;
 }
 
 /* ---------- Tables ---------- */
 const leadCell=(r)=>{
-  if(!r||r.reporting<=0) return '<span class="dim">–</span>';
-  const p=r.d>=r.r?'D':'R', t=r.d+r.r+r.o, m=Math.abs(r.d-r.r)/t*100;
-  return `<span class="lead"><i style="background:var(--${p==='D'?'dem':'rep'})"></i>${r.called?(p==='D'?'Dem win':'Rep win'):`${p==='D'?'Dem':'Rep'} +${m.toFixed(1)}`}</span>`;
+  if(!r) return '<span class="dim">–</span>';
+  if(r.called) return `<span class="lead"><i style="background:${FILL['called-'+r.called]}"></i>${SHORT[r.called]} win</span>`;
+  if(raceStatus(r)==='pending') return '<span class="dim">–</span>';
+  const p=leader(r), t=r.d+r.r+r.o, v={D:r.d,R:r.r,I:r.o}, second=Math.max(...Object.entries(v).filter(([k])=>k!==p).map(([,x])=>x));
+  return `<span class="lead"><i style="background:${FILL['called-'+p]}"></i>${SHORT[p]} +${((v[p]-second)/t*100).toFixed(1)}</span>`;
 };
 const progCell=v=>`<span class="prog">${Math.round(v)}%<span><b style="width:${v}%"></b></span></span>`;
 const rowAttrs=ab=>`data-ab="${ab}" class="${ab===selected?'sel':''}"`;
@@ -510,7 +586,8 @@ function renderTables(){
 function render(){
   renderBoards(); renderStatus(); renderMap(); renderCard(); renderTables();
   document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.ch===chamber));
-  $('updated').textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const t=simulated?new Date():lastLoad;
+  $('updated').textContent=t?t.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'–';
 }
 function select(ab){ selected=ab; render(); }
 function setChamber(ch){
@@ -529,8 +606,8 @@ $('q').addEventListener('input',renderTables);
 function stopTimer(){ if(timer){clearInterval(timer);timer=null} $('play').textContent='▶ Run count'; $('live').classList.remove('running'); }
 $('sim').addEventListener('click',()=>{
   simulated=!simulated; stopTimer();
-  build(simulated?Date.now()%2147483647:1);
-  if(simulated) allRaces().forEach(r=>{ if(rnd()>0.3) stepRace(r, rnd()*60+2) });
+  if(simulated){ build(Date.now()%2147483647); allRaces().forEach(r=>{ if(rnd()>0.3) stepRace(r, rnd()*60+2) }); }
+  else applySheet();
   $('sim').textContent=simulated?'Back to live results':'Preview with simulated results';
   $('play').hidden=!simulated; $('simtag').hidden=!simulated;
   render();
@@ -540,7 +617,8 @@ $('play').addEventListener('click',()=>{
   else{timer=setInterval(tick,1500);$('play').textContent='❚❚ Pause';$('live').classList.add('running')}
 });
 
-build(1);
+applySheet();
+loadSheet(); setInterval(loadSheet,REFRESH_MS);
 setInterval(renderStatus,60000);
 const fromHash=location.hash.slice(1);
 setChamber(CHAMBERS[fromHash]?fromHash:'senate');
