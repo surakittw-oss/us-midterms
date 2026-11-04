@@ -57,8 +57,7 @@ h1{font-family:var(--f-head);font-weight:500;font-size:clamp(28px,4.4vw,44px);li
 .simtag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--live);color:var(--on-solid);border-radius:3px;padding:2px 8px;margin-left:8px;vertical-align:middle}
 .boards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 @media (max-width:860px){.boards{gap:10px}.board{padding:12px}.bnums b{font-size:26px}}
-.board{background:var(--band-2);border-radius:8px;padding:14px 16px;display:grid;gap:8px;text-align:left;color:var(--on-band);border:2px solid transparent}
-.board[aria-pressed="true"]{border-color:var(--on-band)}
+.board{background:var(--band-2);border-radius:8px;padding:14px 16px;display:grid;gap:8px;text-align:left;color:var(--on-band)}
 .board h2{margin:0;font-size:14px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
 .bnums{display:flex;justify-content:space-between;align-items:flex-end}
 .bnums b{font-family:var(--f-head);font-size:36px;font-weight:500;line-height:1;font-variant-numeric:lining-nums tabular-nums;display:inline-flex;align-items:center;gap:.18em}
@@ -202,9 +201,9 @@ dialog::backdrop{background:rgba(8,18,40,.55)}
       <h1>US Midterm Elections 2026<span class="simtag" id="simtag" hidden>Simulated data</span></h1>
     </div>
     <div class="boards">
-      <button class="board" type="button" data-ch="senate"></button>
-      <button class="board" type="button" data-ch="house"></button>
-      <button class="board" type="button" data-ch="governor"></button>
+      <div class="board" data-ch="senate"></div>
+      <div class="board" data-ch="house"></div>
+      <div class="board" data-ch="governor"></div>
     </div>
   </div>
 </header>
@@ -497,7 +496,6 @@ function renderBoards(){
   document.querySelectorAll('.board').forEach(b=>{
     const ch=b.dataset.ch, C=CHAMBERS[ch], t=totals(ch), w=x=>(x/C.total*100)+'%';
     const noun=ch==='governor'?'races':'seats';
-    b.setAttribute('aria-pressed',ch===chamber);
     b.innerHTML=`<h2>${ch==='governor'?'Governors':C.label}</h2>
       <div class="bnums"><b class="d">${picon('D')}${t.D}</b><b class="r">${t.R}${picon('R')}</b></div>
       <div class="bbar">
@@ -667,7 +665,7 @@ function setChamber(ch){
   render();
 }
 
-document.querySelectorAll('.tab,.board').forEach(t=>t.addEventListener('click',()=>setChamber(t.dataset.ch)));
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>setChamber(t.dataset.ch)));
 document.querySelectorAll('.toggle button').forEach(b=>b.addEventListener('click',()=>{
   mapMode=b.dataset.mode; document.querySelectorAll('.toggle button').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderMap();
 }));
