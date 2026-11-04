@@ -471,13 +471,18 @@ function stateStatus(ch, ab){
   if(ch!=='house') return raceStatus(data[ch][ab]);
   if(!data.house[ab]) return 'none';
   const {n,cd,cr,ld,lr}=houseCounts(ab);
-  if(cd>n/2) return 'called-D';   // a party has secured most of the state's seats
-  if(cr>n/2) return 'called-R';
+  // Dark: the party that has won more of the state's seats so far (not necessarily a majority yet)
+  if(cd>cr) return 'called-D';
+  if(cr>cd) return 'called-R';
+  // Seats won are level (or none yet): count the districts each party leads too, shown light
   if(ld+cd===lr+cr) return 'pending';
   return 'lead-'+(ld+cd>lr+cr?'D':'R');
 }
 const FILL={'called-D':'var(--dem)','lead-D':'var(--dem-soft)','called-R':'var(--rep)','lead-R':'var(--rep-soft)','called-I':'var(--ind)','lead-I':'var(--ind-soft)','pending':'var(--pending)','none':'var(--none)'};
 const STATUS_TEXT={'called-D':'Dem win','called-R':'Rep win','called-I':'Ind win','lead-D':'Dem ahead','lead-R':'Rep ahead','lead-I':'Ind ahead','pending':'Awaiting results','none':'No election'};
+// On the House map a dark state means "won more seats so far", not "won the state"
+const HOUSE_TEXT={...STATUS_TEXT,'called-D':'Dem won more seats','called-R':'Rep won more seats'};
+const stText=(ch,st)=>(ch==='house'?HOUSE_TEXT:STATUS_TEXT)[st];
 const SHORT={D:'Dem',R:'Rep',I:'Ind'};
 const picon=p=>`<svg class="picon" aria-hidden="true"><use href="#i-${p==='D'?'dem':'rep'}"/></svg>`;
 const racesOf=ch=>ch==='house'?Object.values(data.house).flat():Object.values(data[ch]);
@@ -575,7 +580,7 @@ function renderMap(){
   if(mapMode==='geo'){
     geo.selectAll('.st').each(function(){
       const el=d3.select(this), ab=el.attr('data-ab'), st=stateStatus(chamber,ab);
-      el.attr('fill',FILL[st]).classed('sel',ab===selected); el.select('title').text(`${BY[ab].en}: ${STATUS_TEXT[st]}`);
+      el.attr('fill',FILL[st]).classed('sel',ab===selected); el.select('title').text(`${BY[ab].en}: ${stText(chamber,st)}`);
     });
     geoLabels.attr('fill',d=>onSolid(stateStatus(chamber,BY_FIPS[d.id].ab)));
     geoBoxes.select('text').attr('fill',ab=>onSolid(stateStatus(chamber,ab)));
@@ -583,7 +588,7 @@ function renderMap(){
     tileG.each(function(s){
       const g=d3.select(this), st=stateStatus(chamber,s.ab), ink=onSolid(st);
       g.select('.hex').attr('fill',FILL[st]).classed('sel',s.ab===selected);
-      g.select('title').text(`${s.en}: ${STATUS_TEXT[st]}`);
+      g.select('title').text(`${s.en}: ${stText(chamber,st)}`);
       g.select('.ht').attr('fill',st==='none'?'var(--muted)':ink);
       let sub='';
       if(chamber==='house'&&s.house){const c=houseCounts(s.ab);sub=c.cd+c.cr?`${c.cd}–${c.cr}`:`${c.n}`}
@@ -598,7 +603,8 @@ function renderMap(){
   drawHighlight();
   const sq=(c,t)=>`<span><i style="background:${c}"></i>${t}</span>`;
   const hasInd=chamber!=='house'&&Object.values(data[chamber]).some(r=>r.names?.I);
-  $('legend').innerHTML=sq('var(--dem)','Dem win')+sq('var(--dem-soft)','Dem ahead')+sq('var(--rep)','Rep win')+sq('var(--rep-soft)','Rep ahead')
+  const L=st=>stText(chamber,st);
+  $('legend').innerHTML=sq('var(--dem)',L('called-D'))+sq('var(--dem-soft)','Dem ahead')+sq('var(--rep)',L('called-R'))+sq('var(--rep-soft)','Rep ahead')
     +(hasInd?sq('var(--ind)','Ind win')+sq('var(--ind-soft)','Ind ahead'):'')+sq('var(--pending)','Awaiting results')+sq('var(--none)','No election')
     +(mapMode==='tiles'&&chamber==='house'?'<span>Numbers: seats won, Dem–Rep</span>':'');
 }
@@ -624,7 +630,7 @@ function renderInfo(){
   if(chamber==='house'){
     if(!data.house[s.ab]){el.innerHTML=`${name}<span class="dim">Non-voting delegate only</span>`;return}
     const c=houseCounts(s.ab), st=stateStatus('house',s.ab);
-    el.innerHTML=`${name}<span class="badge ${st}">${STATUS_TEXT[st]}</span><span>Dem ${c.cd} · Rep ${c.cr} of ${c.n} seat${c.n>1?'s':''}</span>${c.n-c.cd-c.cr?`<span class="dim">${c.n-c.cd-c.cr} not called</span>`:''}`;
+    el.innerHTML=`${name}<span class="badge ${st}">${HOUSE_TEXT[st]}</span><span>Dem ${c.cd} · Rep ${c.cr} of ${c.n} seat${c.n>1?'s':''}</span>${c.n-c.cd-c.cr?`<span class="dim">${c.n-c.cd-c.cr} not called</span>`:''}`;
     return;
   }
   const r=data[chamber][s.ab], office=chamber==='senate'?'Senate':'Governor';
