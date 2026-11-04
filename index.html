@@ -125,6 +125,9 @@ rect.st.sel{stroke:var(--ink);stroke-width:2.5}
 .mesh{fill:none;stroke:var(--surface);stroke-width:.6;pointer-events:none}
 .lbl{font-size:11px;font-weight:700;pointer-events:none;text-anchor:middle;dominant-baseline:central;font-family:var(--f-body)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted)}
+.source{margin:0;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.source a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.source a:hover{color:var(--ink)}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:5px;vertical-align:-2px}
 /* result strip under the map */
 .info{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;min-height:44px;padding:10px 12px;background:var(--bg);border-radius:6px;font-size:15px}
@@ -233,6 +236,7 @@ dialog::backdrop{background:rgba(8,18,40,.55)}
       <svg class="map" id="tiles" viewBox="0 0 742 432" role="img" aria-label="Tile map of results by state" hidden></svg>
       <div class="info" id="info" aria-live="polite"></div>
       <div class="legend" id="legend"></div>
+      <p class="source">Sources: <a href="https://www.bbc.com/news/election/2026/us/results" target="_blank" rel="noopener">BBC News</a>, <a href="https://apnews.com/projects/elections-2026/" target="_blank" rel="noopener">The Associated Press</a></p>
     </div>
   </section>
 
